@@ -19,7 +19,8 @@
     "render": "node scripts/render/run.mjs",
     "sheets": "node scripts/render/run.mjs --sheet",
     "catalog": "node scripts/build-catalog.mjs",
-    "whichart": "node --import tsx packages/engine/src/cli.ts"
+    "whichart": "node --import tsx packages/engine/src/cli.ts",
+    "previews": "node scripts/render/run.mjs --previews=site/public/previews"
   },
   "devDependencies": {
     "@types/node": "22.19.1",

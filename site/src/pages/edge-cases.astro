@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+import Preview from '../components/Preview.astro';
+import { STATES, charts } from '../lib/content';
+import { url } from '../lib/url';
+
+const all = charts();
+const title = 'Chart edge cases: empty data, zeros, outliers and more | Whichart';
+const description =
+  'How charts should behave when real data gets messy: empty, a single point, all zeros, outliers, negative values, long labels, large numbers, gaps in time, and no previous period.';
+---
+
+<Base title={title} description={description}>
+  <div class="wrap">
+    <h1>Edge cases</h1>
+    <p class="lede muted">Example galleries show perfect data. Real dashboards get empty days, new stores and one-off spikes. Here is how each chart handles them.</p>
+    {
+      STATES.map((s) => {
+        const rows = all.map((c) => ({ c, st: c.doc.states[s.id] })).filter(({ st }) => st);
+        return (
+          <section class="section" id={s.id}>
+            <div class="section-head">
+              <h2>{s.question}</h2>
+              <span class="tag">{s.label}</span>
+            </div>
+            <div class="grid">
+              {rows.map(({ c, st }) => (
+                <a class="card" href={url(`charts/${c.id}/`)}>
+                  {st.treatment === 'not-applicable' ? (
+                    <span class="preview na">Not applicable</span>
+                  ) : (
+                    <Preview chart={c.id} state={s.id} alt={`${c.name}: ${s.label}`} />
+                  )}
+                  <div class="card-body">
+                    <h3>{c.name}</h3>
+                    <p>{st.description}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        );
+      })
+    }
+  </div>
+</Base>
+
+<style>
+  h1 { font-size: clamp(28px, 4vw, 40px); margin: 24px 0 8px; }
+  .lede { font-size: 18px; max-width: 64ch; }
+  .na { display: grid !important; place-items: center; color: var(--wc-ink-muted); font-size: 13px; }
+</style>

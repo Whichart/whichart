@@ -1,0 +1,183 @@
+---
+// "Try your data": drop or paste a CSV; the engine ranks every chart and draws them with it.
+// Everything runs in the browser; the data never leaves the device.
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+const read = (p: string) => readFileSync(resolve(process.cwd(), '..', p), 'utf8');
+const samples = [
+  { id: 'revenue', label: 'Daily store revenue', csv: read('charts/line/data/sample.csv').replace(/^date,value/, 'date,revenue') },
+  {
+    id: 'by-channel',
+    label: 'Revenue by channel',
+    csv: 'date,channel,revenue\n2026-09-01,Web,4210\n2026-09-01,App,2980\n2026-09-01,Retail,1150\n2026-09-02,Web,4380\n2026-09-02,App,3120\n2026-09-02,Retail,1090\n2026-09-03,Web,4120\n2026-09-03,App,3340\n2026-09-03,Retail,1240\n',
+  },
+  { id: 'kpi', label: 'This month vs last', csv: 'revenue,previous\n48210,42890\n' },
+];
+---
+
+<section id="try" class="try section" aria-labelledby="try-title" hidden>
+  <div class="section-head">
+    <h2 id="try-title">Try your data</h2>
+    <button class="btn secondary" type="button" id="try-close">Close</button>
+  </div>
+  <p class="muted">Drop a CSV or paste it below. Charts are ranked for your data, with reasons. Nothing is uploaded: it all runs in your browser.</p>
+
+  <div class="drop" id="drop">
+    <input type="file" id="try-file" accept=".csv,.tsv,text/csv,text/plain" />
+    <label for="try-file"><strong>Choose a CSV</strong> or drag it here</label>
+    <textarea id="try-paste" rows="4" placeholder="…or paste CSV here: date,revenue&#10;2026-07-01,1722"></textarea>
+    <div class="samples">
+      <span class="muted">Or try a sample:</span>
+      {samples.map((s) => <button class="chip" type="button" data-sample={s.id}>{s.label}</button>)}
+    </div>
+  </div>
+
+  <div id="try-out" hidden>
+    <p class="profile" id="try-profile"></p>
+    <details class="roles">
+      <summary>How we read your columns</summary>
+      <ul id="try-roles"></ul>
+    </details>
+    <p class="muted" id="try-notes"></p>
+    <div class="ranked" id="try-ranked"></div>
+    <div id="try-avoid-wrap" hidden>
+      <h3>Not a good fit for this data</h3>
+      <ul class="avoid" id="try-avoid"></ul>
+    </div>
+  </div>
+</section>
+
+<script type="application/json" id="try-samples" set:html={JSON.stringify(Object.fromEntries(samples.map((s) => [s.id, s.csv])))} />
+
+<script>
+  import { parseCsv, recommend, type Ranked } from '@whichart/engine';
+  import { adapt } from '../scripts/adapters';
+  import { url } from '../lib/url';
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const panel = $('try');
+  const open = $('try-open');
+  const samples: Record<string, string> = JSON.parse($('try-samples').textContent!);
+
+  const show = (yes: boolean) => {
+    panel.hidden = !yes;
+    open.setAttribute('aria-expanded', String(yes));
+    if (yes) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  open.addEventListener('click', () => show(panel.hidden));
+  $('try-close').addEventListener('click', () => show(false));
+
+  const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+
+  async function run(csv: string) {
+    if (!csv.trim()) return;
+    const { rows } = parseCsv(csv);
+    const rec = recommend({ csv });
+    $('try-out').hidden = false;
+    $('try-profile').textContent = rec.profile.summary;
+    $('try-roles').replaceChildren(
+      ...rec.profile.columns.map((c) => el('li', '', `${c.name}: ${c.role}${c.comparison ? ' (previous period)' : ''}, because ${c.because}`)),
+    );
+    $('try-notes').textContent = rec.notes.join(' ');
+
+    const ranked = $('try-ranked');
+    ranked.replaceChildren();
+    if (!rec.ranked.length) ranked.append(el('p', 'muted', 'None of the charts written so far fit this data. More are coming.'));
+    const { render } = await import('../scripts/registry');
+    for (const [i, r] of rec.ranked.entries()) ranked.append(await card(r, i + 1, rows, render));
+
+    $('try-avoid-wrap').hidden = !rec.avoid.length;
+    $('try-avoid').replaceChildren(
+      ...rec.avoid.map((a) => {
+        const li = el('li');
+        const link = el('a', '', a.name);
+        link.href = url(`charts/${a.id}/`);
+        li.append(link, el('span', '', `: ${a.reasons.map((x) => x.text).join(' ')}`));
+        return li;
+      }),
+    );
+  }
+
+  async function card(r: Ranked, rank: number, rows: Record<string, unknown>[], render: typeof import('../scripts/registry').render) {
+    const box = el('article', 'try-card');
+    const head = el('div', 'try-head');
+    head.append(el('span', 'rank', String(rank)));
+    const name = el('a', 'try-name', r.name);
+    name.href = url(`charts/${r.id}/`);
+    head.append(name, el('span', 'score', `${r.score}/100`));
+    const canvas = el('div', 'try-chart');
+    const reasons = el('ul', 'reasons');
+    for (const why of r.reasons) reasons.append(el('li', 'why', why));
+    for (const w of r.warnings) reasons.append(el('li', 'warn', `${w.text}${w.fix ? ` ${w.fix}` : ''}`));
+    box.append(head, canvas, reasons);
+
+    const adapted = adapt(r.id, rows, r.encoding);
+    if (adapted) {
+      await render(canvas, r.id, adapted.rows, adapted.options);
+      // Components such as KPI tiles size themselves; only charts need the fixed height.
+      if (!canvas.querySelector('svg, canvas')) canvas.classList.add('auto');
+      if (adapted.note) box.insertBefore(el('p', 'muted note', adapted.note), reasons);
+    } else {
+      canvas.remove();
+    }
+    return box;
+  }
+
+  const file = $('try-file') as HTMLInputElement;
+  file.addEventListener('change', async () => file.files?.[0] && run(await file.files[0].text()));
+  const paste = $('try-paste') as HTMLTextAreaElement;
+  let timer: number | undefined;
+  paste.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = window.setTimeout(() => run(paste.value), 400);
+  });
+  const drop = $('drop');
+  drop.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    drop.classList.add('over');
+  });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    drop.classList.remove('over');
+    const f = e.dataTransfer?.files[0];
+    if (f) run(await f.text());
+  });
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-sample]')) {
+    b.addEventListener('click', () => {
+      paste.value = samples[b.dataset.sample!];
+      run(paste.value);
+    });
+  }
+  if (location.hash === '#try') show(true);
+</script>
+
+<style>
+  .try { background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: 14px; padding: 20px; }
+  .drop { border: 1.5px dashed var(--wc-axis); border-radius: 10px; padding: 16px; display: grid; gap: 10px; }
+  .drop.over { border-color: var(--wc-accent); background: var(--wc-page); }
+  .drop input[type='file'] { font-size: 14px; }
+  .drop textarea { width: 100%; background: var(--wc-page); border: 1px solid var(--wc-border); border-radius: 8px; padding: 8px; font-family: ui-monospace, monospace; font-size: 13px; }
+  .samples { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; }
+  .profile { font-weight: 600; margin: 20px 0 4px; }
+  .roles { font-size: 14px; color: var(--wc-ink-secondary); }
+  .ranked { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 16px; }
+  :global(.try-card) { border: 1px solid var(--wc-border); border-radius: 12px; padding: 14px; background: var(--wc-page); display: grid; gap: 10px; min-width: 0; }
+  :global(.try-head) { display: flex; align-items: center; gap: 8px; }
+  :global(.try-head .rank) { background: var(--wc-accent); color: var(--wc-on-accent); border-radius: 6px; padding: 0 7px; font-size: 13px; font-weight: 600; }
+  :global(.try-name) { font-weight: 600; flex: 1; color: var(--wc-ink-primary); }
+  :global(.try-head .score) { font-size: 13px; color: var(--wc-ink-secondary); font-variant-numeric: tabular-nums; }
+  :global(.try-chart) { height: 240px; background: var(--wc-surface); border-radius: 8px; }
+  :global(.try-chart.auto) { height: auto; background: none; }
+  :global(.try-card .reasons) { margin: 0; padding-left: 18px; font-size: 14px; display: grid; gap: 2px; }
+  :global(.try-card .warn) { color: var(--wc-ink-primary); list-style: '!  '; }
+  :global(.try-card .why) { color: var(--wc-ink-secondary); list-style: '+  '; }
+  :global(.try-card .note) { margin: 0; font-size: 13px; }
+  .avoid { font-size: 14px; padding-left: 18px; }
+</style>

@@ -1,0 +1,68 @@
+---
+import Base from '../../layouts/Base.astro';
+import Preview from '../../components/Preview.astro';
+import { INDUSTRIES, chartById, chartName, goalLabel, patterns } from '../../lib/content';
+import { url } from '../../lib/url';
+
+export function getStaticPaths() {
+  return patterns()
+    .filter((p) => p.ready)
+    .map((p) => ({ params: { id: p.id } }));
+}
+const p = patterns().find((x) => x.id === Astro.params.id)!;
+const chart = chartById(p.recommended)!;
+const title = `${p.question.replace(/[?.]$/, '')}? ${chart.name} example | Whichart`.replace('??', '?');
+const description = `${p.summary} Why a ${chart.name.toLowerCase()} works, what to use instead, and ready code tested on real data.`;
+const industryLabel = (id: string) => INDUSTRIES.find((i) => i.id === id)?.label ?? id;
+---
+
+<Base title={title} description={description} image={`previews/${chart.id}/sample-light.png`}>
+  <div class="wrap">
+    <p class="breadcrumb"><a href={url('#patterns')}>Patterns</a> › {goalLabel(p.goal)}</p>
+    <h1>{p.question}</h1>
+    <p class="lede">{p.summary}</p>
+    <ul class="chips">{p.industries.map((i) => <li><a class="chip" href={url(`industries/${i}/`)}>{industryLabel(i)}</a></li>)}</ul>
+
+    <div class="layout">
+      <a class="hero-card" href={url(`charts/${chart.id}/`)}>
+        <Preview chart={chart.id} alt={`${chart.name} answering: ${p.question}`} eager />
+        {p.example && <span class="muted example">{p.example}</span>}
+      </a>
+      <div>
+        <p class="eyebrow">Use a</p>
+        <h2><a href={url(`charts/${chart.id}/`)}>{chart.name}</a></h2>
+        <p>{p.why}</p>
+        <a class="btn" href={url(`charts/${chart.id}/`)}>Code, edge cases &amp; guide</a>
+        {
+          p.alternatives.length > 0 && (
+            <>
+              <h3>Or</h3>
+              <ul class="alts">
+                {p.alternatives.map((a) => (
+                  <li>
+                    {chartById(a.id) ? <a href={url(`charts/${a.id}/`)}>{chartName(a.id)}</a> : <strong>{chartName(a.id)}</strong>}
+                    {!chartById(a.id) && <span class="tag">coming soon</span>}
+                    <span class="muted"> {a.when}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  h1 { font-size: clamp(28px, 4vw, 40px); margin: 0 0 8px; }
+  .lede { font-size: 18px; color: var(--wc-ink-secondary); max-width: 60ch; margin: 0 0 12px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 32px; margin-top: 32px; align-items: start; }
+  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+  .hero-card { display: grid; gap: 8px; background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: 14px; padding: 16px; text-decoration: none; }
+  .hero-card :global(img) { width: 100%; height: auto; }
+  .example { font-size: 14px; }
+  h2 { margin: 0 0 8px; }
+  h2 a { color: inherit; }
+  .alts { padding-left: 18px; }
+</style>

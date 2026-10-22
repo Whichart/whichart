@@ -1,0 +1,99 @@
+---
+import '@whichart/tokens/whichart.css';
+import '../styles/site.css';
+import { url, REPO } from '../lib/url';
+
+interface Props {
+  /** Full page title. */
+  title: string;
+  description: string;
+  /** Site-relative path to a preview image for link sharing. */
+  image?: string;
+  jsonLd?: Record<string, unknown>;
+  noindex?: boolean;
+}
+const { title, description, image = 'previews/line/sample-light.png', jsonLd, noindex = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const imageUrl = new URL(url(image), Astro.site);
+const path = Astro.url.pathname;
+const nav = [
+  ['Patterns', url('#patterns')],
+  ['Charts', url('charts/')],
+  ['Edge cases', url('edge-cases/')],
+  ['Theme', url('theme/')],
+  ['For agents', url('agents/')],
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <link rel="sitemap" href={url('sitemap.xml')} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Whichart" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    <script is:inline>
+      // Apply a saved theme choice before paint. Storage can be unavailable; the OS setting is the fallback.
+      try {
+        const t = localStorage.getItem('wc-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="wordmark" href={url()} aria-label="Whichart home">whi<span>chart</span></a>
+        <nav class="site-nav" aria-label="Main">
+          {nav.map(([label, href]) => <a href={href} aria-current={path === href ? 'page' : undefined}>{label}</a>)}
+        </nav>
+        <button class="theme-toggle" type="button" id="theme-toggle">Dark mode</button>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <span>Whichart is free and open source. Code and data CC0, guides CC BY 4.0, tools MIT.</span>
+        <span><a href={REPO}>GitHub</a> · <a href={`${REPO}/issues/new`}>Report an issue</a> · <a href={url('agents/')}>For agents</a></span>
+      </div>
+    </footer>
+    <script>
+      const btn = document.getElementById('theme-toggle')!;
+      const isDark = () => {
+        const t = document.documentElement.dataset.theme;
+        return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      };
+      const sync = () => (btn.textContent = isDark() ? 'Light mode' : 'Dark mode');
+      btn.addEventListener('click', () => {
+        const next = isDark() ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try {
+          localStorage.setItem('wc-theme', next);
+        } catch {}
+        sync();
+        document.dispatchEvent(new CustomEvent('wc-theme'));
+      });
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        sync();
+        document.dispatchEvent(new CustomEvent('wc-theme'));
+      });
+      sync();
+    </script>
+  </body>
+</html>

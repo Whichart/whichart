@@ -27,6 +27,7 @@ Requires Node 22+ and pnpm.
 ```sh
 pnpm install
 pnpm dev      # local site at http://localhost:4321
+pnpm previews # render chart preview images (needs Chromium: pnpm exec playwright install chromium)
 pnpm build    # static build in site/dist
 ```
 

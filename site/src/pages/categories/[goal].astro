@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import PatternCard from '../../components/PatternCard.astro';
+import ChartCard from '../../components/ChartCard.astro';
+import { GOALS, charts, patterns } from '../../lib/content';
+import { url } from '../../lib/url';
+
+export function getStaticPaths() {
+  return GOALS.map((g) => ({ params: { goal: g.id } }));
+}
+const g = GOALS.find((x) => x.id === Astro.params.goal)!;
+const ps = patterns().filter((p) => p.goal === g.id);
+const cs = charts().filter((c) => c.goals.includes(g.id));
+const title = `${g.label} charts: which to use | Whichart`;
+const description = `${g.description} Patterns and charts for ${g.label.toLowerCase()} (${g.synonyms.join(', ')}), with examples tested on real data and ready code.`;
+---
+
+<Base title={title} description={description}>
+  <div class="wrap">
+    <p class="breadcrumb"><a href={url()}>Home</a> › Categories</p>
+    <h1>{g.label}</h1>
+    <p class="lede">{g.description} <span class="muted">Also: {g.synonyms.join(', ')}.</span></p>
+    <ul class="chips">{GOALS.map((x) => <li><a class="chip" href={url(`categories/${x.id}/`)} aria-current={x.id === g.id ? 'page' : undefined}>{x.label}</a></li>)}</ul>
+    {ps.length > 0 && (
+      <section class="section">
+        <div class="section-head"><h2>Patterns</h2></div>
+        <div class="grid">{ps.map((p) => <PatternCard pattern={p} />)}</div>
+      </section>
+    )}
+    <section class="section">
+      <div class="section-head"><h2>Charts</h2></div>
+      {cs.length ? <div class="grid">{cs.map((c) => <ChartCard chart={c} />)}</div> : <p class="muted">Charts for this category are coming soon.</p>}
+    </section>
+  </div>
+</Base>
+
+<style>
+  h1 { font-size: clamp(28px, 4vw, 40px); margin: 0 0 8px; }
+  .lede { font-size: 18px; max-width: 60ch; margin: 0 0 16px; }
+</style>

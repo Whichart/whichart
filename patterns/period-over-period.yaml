@@ -1,0 +1,11 @@
+id: period-over-period
+question: This period vs the last
+summary: This month's line on top of last month's, aligned by day.
+goal: trend
+industries: [ecommerce, saas, marketing, finance]
+keywords: [month over month, week over week, year over year, mom, yoy, comparison period]
+recommended: period-comparison
+alternatives:
+  - id: kpi-tile-delta
+    when: Only the total matters, not the shape.
+why: Overlaying the previous period on the same axis shows where this period pulled ahead or fell behind, not just the end result.

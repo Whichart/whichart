@@ -1,0 +1,14 @@
+id: kpi-with-change
+question: Show a KPI and how it changed
+summary: One headline number, with an honest change against the previous period.
+goal: kpi
+industries: [ecommerce, saas, marketing, finance, operations]
+keywords: [stat card, scorecard, big number, metric card, dashboard header]
+recommended: kpi-tile-delta
+alternatives:
+  - id: kpi-tile-sparkline
+    when: The recent shape matters as much as the number.
+  - id: progress-meter
+    when: The number is measured against a target.
+why: A dashboard's first row answers "how are we doing?" in one glance. The change line has to stay honest when there's no previous period, a zero, or a sign flip.
+example: Revenue this month against last month

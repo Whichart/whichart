@@ -107,8 +107,10 @@ function shapeProblems(entry: CatalogEntry, p: Profile): { exclude: string[]; ag
   return { exclude, aggregate };
 }
 
-function encodingFor(entry: CatalogEntry, p: Profile): Encoding {
+function encodingFor(entry: CatalogEntry, p: Profile, aggregate = false): Encoding {
   const wants = new Set(entry.data.fields.map((f) => f.role));
+  // A chart that summarises a time series (e.g. a KPI tile) needs the time column to summarise by.
+  if (aggregate) wants.add('time');
   const first = (role: Role) => p.columns.find((c) => c.role === role)?.name;
   const maxMeasures = entry.data.fields.find((f) => f.role === 'measure')?.count.max ?? Infinity;
   return {
@@ -202,7 +204,7 @@ export function recommend(input: RecommendInput, charts: CatalogEntry[] = catalo
       score: Math.round(Math.max(0, Math.min(100, score))),
       reasons,
       warnings,
-      encoding: encodingFor(entry, p),
+      encoding: encodingFor(entry, p, shape.aggregate),
     });
   }
 

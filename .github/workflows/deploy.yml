@@ -27,6 +27,12 @@ jobs:
       - id: pages
         uses: actions/configure-pages@v5
       - run: pnpm install --frozen-lockfile
+      - name: Install Chromium and fonts for preview images
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          sudo apt-get install -y --no-install-recommends fonts-noto-core
+      - name: Render preview images
+        run: pnpm previews
       - run: pnpm build
         env:
           SITE_URL: ${{ steps.pages.outputs.origin }}

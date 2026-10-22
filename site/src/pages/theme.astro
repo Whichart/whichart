@@ -2,9 +2,8 @@
 import tokens from '@whichart/tokens/tokens.json';
 import { validateTokens } from '@whichart/tokens/validate';
 import { diverging, sequential, deltaColors } from '@whichart/tokens/build';
-import '@whichart/tokens/whichart.css';
+import Base from '../layouts/Base.astro';
 
-const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 const { results, reliefSlots } = validateTokens(tokens);
 const modes = ['light', 'dark'];
 const hues = ['blue', 'orange', 'aqua', 'yellow', 'magenta', 'green', 'violet', 'red'];
@@ -17,19 +16,9 @@ const bars = [['Web', 82], ['App', 64], ['Marketplace', 41], ['Retail', 23]];
 const statusIcon = { good: '✓', warning: '!', serious: '▲', critical: '✕' };
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Theme preview</title>
-    <meta name="robots" content="noindex" />
-    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  </head>
-  <body>
-    <main>
-      <p class="back"><a href={`${base}preview/home/`}>← Homepage wireframe</a></p>
-      <h1>Default theme</h1>
+<Base title="Chart colour theme: colour-blind safe, light and dark | Whichart" description="Whichart's default chart palette, checked for colour blindness and contrast in light and dark mode. Test your own brand colours and download the tokens.">
+  <div class="wrap tp">
+      <h1>Theme</h1>
       <p class="lede">
         Generated from <code>packages/tokens/tokens.json</code>. Every number below is computed in CI; a palette that fails a check can't be merged.
       </p>
@@ -106,7 +95,7 @@ const statusIcon = { good: '✓', warning: '!', serious: '▲', critical: '✕' 
         }
       </div>
 
-      <h2>Checks</h2>
+      <h2>Checks on the default palette</h2>
       <div class="table-wrap">
         <table>
           <thead>
@@ -130,13 +119,86 @@ const statusIcon = { good: '✓', warning: '!', serious: '▲', critical: '✕' 
         ΔE is distance in OKLab ×100. Colour-blindness is simulated with Machado et al. (2009). Scatter plots, maps and small multiples
         are limited to the first 3 colours, the most that stay distinct when any two can sit side by side.
       </p>
-    </main>
+
+      <h2 id="yours">Check your brand colours</h2>
+      <p class="lede">Paste 8 colours per mode, in the order you'll use them. The same checks run in your browser, and you can download a <code>tokens.json</code> to generate ECharts, Recharts and Plotly themes.</p>
+      <div class="mine">
+        {modes.map((mode) => (
+          <label class="mine-field">
+            <span>{mode === 'light' ? 'Light' : 'Dark'} mode</span>
+            <input data-mode={mode} value={tokens.modes[mode].categorical.join(', ')} spellcheck="false" />
+            <span class="mine-swatches" data-swatches={mode}></span>
+          </label>
+        ))}
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Result</th><th>Mode</th><th>Check</th><th>Detail</th></tr></thead><tbody id="mine-results"></tbody></table></div>
+      <p><button class="btn" type="button" id="mine-download">Download tokens.json</button> <span class="muted" id="mine-status"></span></p>
+    </div>
+  <script type="application/json" id="tokens-json" set:html={JSON.stringify(tokens)} />
+  <script>
+    import { checkCategorical, validateTokens } from '@whichart/tokens/validate';
+    const base = JSON.parse(document.getElementById('tokens-json')!.textContent!);
+    const inputs = [...document.querySelectorAll<HTMLInputElement>('[data-mode]')];
+    const body = document.getElementById('mine-results')!;
+    const status = document.getElementById('mine-status')!;
+    const parse = (v: string) => v.split(/[\s,]+/).map((x) => x.trim()).filter(Boolean).map((x) => (x.startsWith('#') ? x : `#${x}`).toLowerCase());
+    function current() {
+      const t = structuredClone(base);
+      for (const i of inputs) t.modes[i.dataset.mode!].categorical = parse(i.value);
+      return t;
+    }
+    function check() {
+      const t = current();
+      body.replaceChildren();
+      let ok = true;
+      for (const i of inputs) {
+        const colors = parse(i.value);
+        const sw = document.querySelector(`[data-swatches="${i.dataset.mode}"]`)!;
+        sw.replaceChildren(...colors.map((c) => Object.assign(document.createElement('span'), { title: c, style: `background:${/^#[0-9a-f]{6}$/.test(c) ? c : 'transparent'}` })));
+        const bad = colors.filter((c) => !/^#[0-9a-f]{6}$/.test(c));
+        if (bad.length || colors.length < 2) {
+          ok = false;
+          body.append(row('fail', i.dataset.mode!, 'Format', bad.length ? `Not #rrggbb: ${bad.join(', ')}` : 'Enter at least 2 colours'));
+          continue;
+        }
+        const m = t.modes[i.dataset.mode!];
+        for (const r of checkCategorical(colors, { mode: i.dataset.mode, surface: m.surface })) {
+          if (r.level === 'fail') ok = false;
+          body.append(row(r.level, i.dataset.mode!, r.check, r.detail));
+        }
+      }
+      status.textContent = ok ? 'All required checks pass.' : 'Fix the failing checks before using this palette.';
+      return ok;
+    }
+    function row(level: string, mode: string, check: string, detail: string) {
+      const tr = document.createElement('tr');
+      for (const [i, v] of [level.toUpperCase(), mode, check, detail].entries()) {
+        const td = document.createElement('td');
+        if (i === 0) { const s = document.createElement('span'); s.className = `res res-${level}`; s.textContent = v; td.append(s); } else td.textContent = v;
+        tr.append(td);
+      }
+      return tr;
+    }
+    for (const i of inputs) i.addEventListener('input', check);
+    document.getElementById('mine-download')!.addEventListener('click', () => {
+      check();
+      const blob = new Blob([JSON.stringify(current(), null, 2) + '\n'], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'tokens.json' });
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+    check();
+  </script>
+</Base>
 
     <style>
-      * { box-sizing: border-box; }
-      body { margin: 0; background: var(--wc-page); color: var(--wc-ink-primary); font: 15px/1.5 var(--wc-font); }
-      main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
-      a { color: var(--wc-accent); }
+      .tp { padding-top: 24px; }
+      .mine { display: grid; gap: 12px; margin: 16px 0; }
+      .mine-field { display: grid; gap: 6px; font-size: 14px; }
+      .mine-field input { width: 100%; padding: 8px 10px; border: 1px solid var(--wc-axis); border-radius: 8px; background: var(--wc-surface); font-family: ui-monospace, monospace; font-size: 13px; }
+      .mine-swatches { display: flex; gap: 4px; }
+      .mine-swatches :global(span) { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--wc-border); }
+
       h1 { margin: 0 0 4px; letter-spacing: -0.02em; }
       .lede { color: var(--wc-ink-secondary); max-width: 70ch; }
       .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 24px 0; }
@@ -161,13 +223,11 @@ const statusIcon = { good: '✓', warning: '!', serious: '▲', critical: '✕' 
       .status b { width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; }
       .delta { display: flex; gap: 16px; font-weight: 600; margin: 0; }
       .table-wrap { overflow-x: auto; }
-      table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--wc-surface); }
-      th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--wc-grid); vertical-align: top; }
-      td code { white-space: normal; word-break: break-word; }
-      .res { font-weight: 600; font-size: 11px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--wc-border); }
-      .res-pass { color: var(--wc-delta-up); }
-      .res-warn { color: var(--wc-ink-primary); }
-      .res-fail { color: var(--wc-delta-down); }
+      .tp :global(table) { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--wc-surface); }
+      .tp :global(th), .tp :global(td) { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--wc-grid); vertical-align: top; }
+      .tp :global(td code) { white-space: normal; word-break: break-word; }
+      :global(.res) { font-weight: 600; font-size: 11px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--wc-border); }
+      :global(.res-pass) { color: var(--wc-delta-up); }
+      :global(.res-warn) { color: var(--wc-ink-primary); }
+      :global(.res-fail) { color: var(--wc-delta-down); }
     </style>
-  </body>
-</html>

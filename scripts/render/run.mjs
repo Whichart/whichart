@@ -5,6 +5,8 @@
 //   node scripts/render/run.mjs            # check all charts
 //   node scripts/render/run.mjs line       # check one chart
 //   node scripts/render/run.mjs --sheet    # also write contact sheets to .render/sheets/
+//   node scripts/render/run.mjs --previews=site/public/previews
+//                                          # reference target only, one PNG per dataset and mode (no Python)
 //
 // Env: PYTHON (default python3) for Plotly figures; CHROMIUM_PATH to use a specific browser.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
@@ -20,10 +22,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const out = join(root, '.render');
 const args = process.argv.slice(2);
 const sheet = args.includes('--sheet');
+const previews = args.find((a) => a.startsWith('--previews='))?.split('=')[1];
 const only = args.filter((a) => !a.startsWith('--'));
 const MODES = ['light', 'dark'];
 const BROWSER_TARGETS = ['echarts', 'recharts', 'react', 'vanilla'];
-const SIZE = { chart: { width: 480, height: 320 }, component: { width: 300, height: 170 } };
+const SIZE = { chart: { width: 480, height: 300 }, component: { width: 300, height: 170 } };
 
 // -- discover ------------------------------------------------------------------
 const charts = readdirSync(join(root, 'charts'))
@@ -38,7 +41,10 @@ const charts = readdirSync(join(root, 'charts'))
       options: d.options,
       rows: parseCsv(readFileSync(join(dir, 'data', d.file), 'utf8')),
     }));
-    return { id, dir, doc, datasets, targets: Object.keys(doc.code), kind: doc.code.echarts ? 'chart' : 'component' };
+    const all = Object.keys(doc.code);
+    // Previews show the reference implementation only: ECharts for charts, plain DOM for components.
+    const targets = previews ? [doc.code.echarts ? 'echarts' : 'vanilla'] : all;
+    return { id, dir, doc, datasets, targets, kind: doc.code.echarts ? 'chart' : 'component' };
   });
 
 if (!charts.length) {
@@ -137,6 +143,7 @@ writeFileSync(
   table { border-collapse: separate; border-spacing: 12px; }
   th { text-align: left; font-weight: 600; color: var(--wc-ink-secondary); vertical-align: top; }
   .cell { background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: 8px; overflow: hidden; }
+  .previews .cell { border: 0; border-radius: 0; display: grid; align-content: center; }
   .state { white-space: nowrap; }
   .state small { display: block; font-weight: 400; color: var(--wc-ink-muted); white-space: normal; max-width: 140px; }
 </style></head><body><script src="bundle.js"></script></body></html>`,
@@ -149,7 +156,7 @@ mkdirSync(join(out, 'sheets'), { recursive: true });
 
 for (const c of charts) {
   for (const mode of MODES) {
-    const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, colorScheme: mode });
+    const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, colorScheme: mode, deviceScaleFactor: previews ? 2 : 1 });
     let current = null;
     page.on('pageerror', (e) => fail(current ?? `${c.id}/${mode}`, `page error: ${e.message}`));
     page.on('console', (m) => {
@@ -157,8 +164,9 @@ for (const c of charts) {
     });
     await page.goto(`file://${join(out, 'index.html')}`);
     await page.evaluate(
-      ({ id, mode, targets, datasets, states, size }) => {
+      ({ id, mode, targets, datasets, states, size, previewMode }) => {
         document.documentElement.dataset.theme = mode;
+        if (previewMode) document.body.classList.add('previews');
         const title = document.createElement('h1');
         title.textContent = `${id} · ${mode}`;
         const table = document.createElement('table');
@@ -185,7 +193,7 @@ for (const c of charts) {
         }
         document.body.append(title, table);
       },
-      { id: c.id, mode, targets: c.targets, datasets: c.datasets, states: c.doc.states, size: SIZE[c.kind] },
+      { id: c.id, mode, targets: c.targets, datasets: c.datasets, states: c.doc.states, size: SIZE[c.kind], previewMode: !!previews },
     );
 
     for (const d of c.datasets) {
@@ -221,6 +229,11 @@ for (const c of charts) {
         const state = c.doc.states[d.key];
         if (state?.treatment === 'message' && !result.text.includes(state.message)) {
           fail(current, `expected the message "${state.message}" from chart.yaml`);
+        }
+        if (previews) {
+          const dir = join(root, previews, c.id);
+          mkdirSync(dir, { recursive: true });
+          await page.locator(`#${d.key}--${t}`).screenshot({ path: join(dir, `${d.key}-${mode}.png`) });
         }
       }
     }

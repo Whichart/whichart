@@ -1,0 +1,11 @@
+id: on-track-for-target
+question: Are we on track for the target?
+summary: Progress against a monthly or quarterly goal.
+goal: kpi
+industries: [ecommerce, saas, marketing, finance, operations]
+keywords: [goal, quota, target, progress bar, okr]
+recommended: progress-meter
+alternatives:
+  - id: bullet-chart
+    when: You also need to show ranges such as poor, fair and good.
+why: A single filled bar against a target reads instantly; gauges waste space for the same information.

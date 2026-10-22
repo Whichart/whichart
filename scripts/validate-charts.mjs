@@ -85,6 +85,32 @@ for (const [, { doc, where }] of charts) {
   }
 }
 
+// Patterns: schema, id matches file name, charts they point to are planned.
+const patternSchema = JSON.parse(readFileSync(join(root, 'schema/pattern.schema.json'), 'utf8'));
+const validatePattern = new Ajv2020({ allErrors: true, strict: true, allowUnionTypes: true }).compile(patternSchema);
+const patternDir = join(root, 'patterns');
+let patterns = 0;
+for (const file of existsSync(patternDir) ? readdirSync(patternDir).filter((f) => f.endsWith('.yaml')).sort() : []) {
+  const where = `patterns/${file}`;
+  let doc;
+  try {
+    doc = parse(readFileSync(join(patternDir, file), 'utf8'));
+  } catch (err) {
+    fail(where, `invalid YAML: ${err.message}`);
+    continue;
+  }
+  if (!validatePattern(doc)) {
+    for (const err of validatePattern.errors) fail(where, `${err.instancePath || '/'} ${err.message}`);
+    continue;
+  }
+  if (`${doc.id}.yaml` !== file) fail(where, `id "${doc.id}" must match the file name`);
+  for (const id of [doc.recommended, ...(doc.alternatives ?? []).map((a) => a.id)]) {
+    if (!planned.has(id)) fail(where, `links to unknown chart "${id}"`);
+  }
+  patterns++;
+}
+console.log(`✓ ${patterns} patterns`);
+
 for (const w of warnings) console.warn(`! ${w}`);
 console.log(`\n${charts.size} entries, ${errors} errors, ${warnings.length} warnings`);
 process.exit(errors ? 1 : 0);

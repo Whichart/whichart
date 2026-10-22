@@ -8,6 +8,7 @@
   "required": [
     "id",
     "name",
+    "aliases",
     "status",
     "summary",
     "goals",
@@ -32,11 +33,13 @@
       "maxLength": 60
     },
     "aliases": {
+      "description": "Synonyms people search for, including the graph/plot form of the name. At least 3.",
       "type": "array",
       "items": {
         "type": "string"
       },
-      "uniqueItems": true
+      "uniqueItems": true,
+      "minItems": 3
     },
     "status": {
       "description": "draft entries are hidden from the site and recommender.",
