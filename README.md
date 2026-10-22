@@ -1,0 +1,3 @@
+# Review assets
+
+Screenshots referenced from pull requests. Not part of the project.
