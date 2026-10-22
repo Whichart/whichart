@@ -1,0 +1,124 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const repo = 'https://github.com/Whichart/whichart';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Whichart</title>
+    <meta
+      name="description"
+      content="The reference agents and researchers check before making a chart. Pick the right chart, design it well, handle the edge cases, ship working code."
+    />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <style>
+      :root {
+        --bg: #fbfbfa;
+        --surface: #ffffff;
+        --text: #1b1d21;
+        --muted: #5b6070;
+        --border: #e3e4e8;
+        --accent: #2f6fde;
+        color-scheme: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #111317;
+          --surface: #191c22;
+          --text: #eceef2;
+          --muted: #a2a8b6;
+          --border: #2b2f38;
+          --accent: #6f9cf0;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        padding: 48px 16px;
+      }
+      main {
+        width: 100%;
+        max-width: 640px;
+      }
+      .wordmark {
+        font-size: clamp(40px, 9vw, 64px);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        margin: 0 0 8px;
+      }
+      .wordmark span {
+        color: var(--accent);
+      }
+      .tagline {
+        font-size: 20px;
+        color: var(--muted);
+        margin: 0 0 40px;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 40px;
+        display: grid;
+        gap: 12px;
+      }
+      li {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 16px;
+      }
+      li strong {
+        display: block;
+      }
+      li em {
+        color: var(--muted);
+        font-style: normal;
+      }
+      .status {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 class="wordmark">whi<span>chart</span></h1>
+      <p class="tagline">The reference agents and researchers check before making a chart.</p>
+      <ul>
+        <li>
+          <strong>Pick the right chart</strong>
+          <em>Drop your data in and see every chart ranked against it, with the reasons why and why not.</em>
+        </li>
+        <li>
+          <strong>Handle the edge cases</strong>
+          <em>Empty data, zeros, outliers, no previous period: see how each chart should behave.</em>
+        </li>
+        <li>
+          <strong>Ship working code</strong>
+          <em>Tested ECharts, Recharts and Plotly code, with one consistent theme.</em>
+        </li>
+        <li>
+          <strong>Built for agents too</strong>
+          <em>MCP server, Agent Skill, llms.txt and a JSON catalog.</em>
+        </li>
+      </ul>
+      <p class="status">
+        In progress. Follow along on <a href={repo}>GitHub</a> or read the <a href={`${repo}/blob/main/PLAN.md`}>project plan</a>.
+      </p>
+    </main>
+  </body>
+</html>
