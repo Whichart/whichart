@@ -1,0 +1,39 @@
+# Every chart id planned for the catalogue. Entries may link to these before
+# they exist (a warning); links to ids not listed here are errors.
+core:
+  - kpi-tile-delta
+  - kpi-tile-sparkline
+  - progress-meter
+  - line
+  - multi-line
+  - area
+  - sparkline
+  - period-comparison
+  - bar-horizontal
+  - stacked-bar
+  - top-n-table
+  - donut
+  - funnel
+  - cohort-heatmap
+  - data-table
+later:
+  - bullet-chart
+  - gauge
+  - stacked-area
+  - column-over-time
+  - bar-line-shared-axis
+  - grouped-bar
+  - stacked-bar-100
+  - dot-plot
+  - slope-chart
+  - treemap
+  - waterfall
+  - sankey
+  - histogram
+  - box-plot
+  - scatter
+  - bubble
+  - heatmap-hour-weekday
+  - calendar-heatmap
+  - choropleth
+  - small-multiples

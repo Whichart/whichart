@@ -111,7 +111,15 @@ export function echarts(tokens, mode) {
     categoryAxis: { ...axis, splitLine: { show: false } },
     valueAxis: { ...axis, axisLine: { show: false } },
     timeAxis: { ...axis, splitLine: { show: false } },
-    line: { lineStyle: { width: tokens.marks.lineWidth }, symbolSize: tokens.marks.markerSize, symbol: 'circle', smooth: false },
+    line: {
+      lineStyle: { width: tokens.marks.lineWidth },
+      symbolSize: tokens.marks.markerSize,
+      symbol: 'circle',
+      smooth: false,
+      // Value labels wear text ink, never an outline or the series colour.
+      label: { color: m.ink.primary, textBorderWidth: 0 },
+    },
+    markPoint: { label: { color: m.ink.primary, textBorderWidth: 0 } },
     bar: { itemStyle: { borderRadius: [tokens.marks.barRadius, tokens.marks.barRadius, 0, 0] } },
     pie: { itemStyle: { borderColor: m.surface, borderWidth: tokens.marks.gap } },
     funnel: { itemStyle: { borderColor: m.surface, borderWidth: tokens.marks.gap } },
@@ -141,6 +149,7 @@ export function plotly(tokens, mode) {
       xaxis: { ...axis, showgrid: false },
       yaxis: { ...axis, showgrid: true },
       hoverlabel: { bgcolor: m.surface, bordercolor: m.axis, font: { color: m.ink.primary } },
+      annotationdefaults: { font: { color: m.ink.primary } },
       colorscale: { sequential: scale(sequential(tokens, mode)), diverging: scale(diverging(tokens, mode)) },
     },
     data: {

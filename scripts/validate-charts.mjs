@@ -8,6 +8,10 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import { parse } from 'yaml';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const plannedDoc = parse(readFileSync(join(root, 'charts/planned.yaml'), 'utf8'));
+const planned = new Set([...plannedDoc.core, ...plannedDoc.later]);
+// Code examples take colours from the theme, never literals.
+const COLOUR_LITERAL = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/;
 const schema = JSON.parse(readFileSync(join(root, 'schema/chart.schema.json'), 'utf8'));
 const validate = new Ajv2020({ allErrors: true, strict: true, strictRequired: false, allowUnionTypes: true }).compile(schema);
 
@@ -48,15 +52,25 @@ for (const e of entries) {
   if (doc.id !== e.folder) fail(where, `id "${doc.id}" must match folder "${e.folder}"`);
   if (!e.example) {
     for (const file of Object.values(doc.code)) {
-      if (!existsSync(join(e.dir, file))) fail(where, `missing ${file}`);
+      const path = join(e.dir, file);
+      if (!existsSync(path)) {
+        fail(where, `missing ${file}`);
+        continue;
+      }
+      readFileSync(path, 'utf8')
+        .split('\n')
+        .forEach((line, i) => {
+          if (COLOUR_LITERAL.test(line)) fail(`${file}:${i + 1}`, 'hard-coded colour; use the theme instead');
+        });
     }
+    if (!planned.has(doc.id)) fail(where, `"${doc.id}" is not in charts/planned.yaml`);
     if (!existsSync(join(e.dir, 'guide.md'))) fail(where, 'missing guide.md');
   }
   charts.set(doc.id, { doc, where });
   console.log(`✓ ${where}`);
 }
 
-// Links to other charts. Warnings until the catalogue is complete; errors for ready entries.
+// Links to other charts: planned-but-missing is a warning; anything else is an error.
 for (const [, { doc, where }] of charts) {
   const linked = [
     ...doc.guidance.alternatives.map((a) => a.id),
@@ -66,8 +80,8 @@ for (const [, { doc, where }] of charts) {
   ];
   for (const id of new Set(linked)) {
     if (charts.has(id)) continue;
-    if (doc.status === 'ready') fail(where, `links to unknown chart "${id}"`);
-    else warnings.push(`${where}: links to "${id}", which doesn't exist yet`);
+    if (!planned.has(id)) fail(where, `links to unknown chart "${id}"`);
+    else warnings.push(`${where}: links to "${id}", planned but not written yet`);
   }
 }
 

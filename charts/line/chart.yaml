@@ -1,0 +1,125 @@
+id: line
+name: Line chart
+aliases: [line graph, trend line, time series]
+status: ready
+summary: Shows how one measure changes over continuous time.
+
+goals: [trend]
+
+data:
+  fields:
+    - role: time
+      count: { min: 1, max: 1 }
+      description: One row per period (day, week or month).
+    - role: measure
+      count: { min: 1, max: 1 }
+      description: The value to plot. For several series, use a multi-line chart.
+  rows: { min: 1 }
+  notes: Missing periods are filled with gaps, never interpolated.
+
+fit:
+  rules:
+    - when: { metric: timeFields, op: "=", value: 0 }
+      effect: exclude
+      reason: A line implies continuity over time. Without a time field the connecting lines mean nothing.
+      suggest: bar-horizontal
+    - when: { metric: series, op: ">", value: 1 }
+      effect: exclude
+      reason: This is the single-series line. Several series need colours, a legend and different rules.
+      suggest: multi-line
+    - when: { metric: pointsPerSeries, op: "<", value: 3 }
+      effect: penalty
+      weight: 0.6
+      reason: With fewer than 3 points there's no trend to see.
+      fix: Show the latest value and its change as a KPI tile.
+      suggest: kpi-tile-delta
+    - when: { all: [{ metric: goal, op: "=", value: trend }, { metric: timeFields, op: "=", value: 1 }] }
+      effect: boost
+      weight: 0.4
+      reason: Time on the x-axis and a trend question is exactly what a line chart is for.
+    - when: { metric: space, op: "=", value: tile }
+      effect: penalty
+      weight: 0.5
+      reason: Axes and labels don't fit in a KPI tile.
+      suggest: sparkline
+
+context:
+  space: { tile: poor, card: good, half: good, full: good }
+  audience: { glance: good, explore: good }
+  medium: { dashboard: good, report: good, slide: good }
+
+guidance:
+  useWhen:
+    - The question is "how did this change over time?"
+    - You have regular periods (daily, weekly, monthly) for one measure.
+  avoidWhen:
+    - The x-axis is categories with no order. Use a bar chart.
+    - You need to compare several series. Use a multi-line chart, or small multiples beyond 5.
+    - You want to add a second measure on a second y-axis. Never do this; use two charts or index both to 100.
+    - The reader needs exact values. Use a table, or label the points that matter.
+  alternatives:
+    - id: area
+      when: The volume under the line matters, e.g. cumulative sign-ups.
+    - id: sparkline
+      when: Space is a KPI tile and only the shape matters.
+    - id: period-comparison
+      when: The point is "this period vs last period".
+    - id: multi-line
+      when: You need 2–5 series on the same scale.
+  pitfalls:
+    - A y-axis that doesn't start at zero exaggerates small changes. Allowed for lines, but label the axis clearly.
+    - Connecting across missing days hides gaps. Break the line instead.
+    - Daily data with strong weekday patterns looks noisy. Consider a 7-day average or weekly totals.
+
+states:
+  empty:
+    treatment: message
+    description: Keep the frame and axes so the layout doesn't jump; show a short message in the plot area.
+    message: No data for this period
+  singlePoint:
+    treatment: adapt
+    description: Draw the single point as a dot with its value labelled. If this happens often, show a KPI tile instead.
+  allZeros:
+    treatment: adapt
+    description: Draw the flat line on the baseline with the y-axis fixed to 0–1, so it doesn't invent a scale.
+  outlier:
+    treatment: adapt
+    description: Keep the linear scale and label the highest point directly. Never clip it or switch to a log scale silently.
+  negative:
+    treatment: render
+    description: The axis extends below zero and the x-axis sits on zero, so negative days read as below the line.
+  manySeries:
+    treatment: not-applicable
+    description: Single series by definition. Data with several series is routed to multi-line.
+  longLabels:
+    treatment: adapt
+    description: The title (the measure name) is truncated with an ellipsis to fit; the full name is in the tooltip.
+  largeNumbers:
+    treatment: adapt
+    description: Axis ticks use the locale's compact form (1.2M, ৳1.3Cr); the tooltip shows the full value.
+  timeGaps:
+    treatment: adapt
+    description: Missing days are filled with empty values and the line breaks there instead of joining across the gap.
+  noPrevious:
+    treatment: not-applicable
+    description: A plain line chart doesn't compare against a previous period.
+
+color:
+  job: single
+  pairs: adjacent
+  maxSeries: 1
+
+accessibility:
+  tableFallback: true
+  labels: selective
+  notes:
+    - Single series, so no legend; the title names the measure.
+    - Crosshair tooltip shows the date and full value.
+    - Label the highest point and any point you mention in the text.
+
+code:
+  echarts: code/echarts.ts
+  recharts: code/recharts.tsx
+  plotly: code/plotly_figure.py
+
+related: [area, sparkline, period-comparison, multi-line]

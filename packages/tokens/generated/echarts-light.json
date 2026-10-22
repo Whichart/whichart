@@ -117,7 +117,17 @@
     },
     "symbolSize": 8,
     "symbol": "circle",
-    "smooth": false
+    "smooth": false,
+    "label": {
+      "color": "#0b0b0b",
+      "textBorderWidth": 0
+    }
+  },
+  "markPoint": {
+    "label": {
+      "color": "#0b0b0b",
+      "textBorderWidth": 0
+    }
   },
   "bar": {
     "itemStyle": {
