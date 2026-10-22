@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro';
+import PatternCard from '../../components/PatternCard.astro';
+import { INDUSTRIES, patterns } from '../../lib/content';
+import { url } from '../../lib/url';
+
+export function getStaticPaths() {
+  return INDUSTRIES.filter((i) => i.id !== 'research').map((i) => ({ params: { id: i.id } }));
+}
+const ind = INDUSTRIES.find((x) => x.id === Astro.params.id)!;
+const ps = patterns().filter((p) => p.industries.includes(ind.id));
+const title = `${ind.label} dashboard charts: patterns & examples | Whichart`;
+const description = `Chart patterns for ${ind.label} dashboards: the questions teams ask, the right chart for each, tested on real data with ready code.`;
+---
+
+<Base title={title} description={description}>
+  <div class="wrap">
+    <p class="breadcrumb"><a href={url()}>Home</a> › Industries</p>
+    <h1>{ind.label} dashboards</h1>
+    <ul class="chips">
+      {INDUSTRIES.filter((i) => i.id !== 'research').map((i) => <li><a class="chip" href={url(`industries/${i.id}/`)} aria-current={i.id === ind.id ? 'page' : undefined}>{i.label}</a></li>)}
+    </ul>
+    <section class="section">
+      <div class="grid">{ps.map((p) => <PatternCard pattern={p} />)}</div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  h1 { font-size: clamp(28px, 4vw, 40px); margin: 0 0 16px; }
+</style>

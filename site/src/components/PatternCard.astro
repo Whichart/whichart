@@ -1,0 +1,36 @@
+---
+import Preview from './Preview.astro';
+import { chartName, goalLabel, type Pattern } from '../lib/content';
+import { url } from '../lib/url';
+interface Props {
+  pattern: Pattern;
+}
+const { pattern: p } = Astro.props;
+---
+
+{
+  p.ready ? (
+    <a class="card" href={url(`patterns/${p.id}/`)} data-goal={p.goal} data-industries={p.industries.join(' ')}>
+      <Preview chart={p.recommended} alt={`${chartName(p.recommended)} answering: ${p.question}`} />
+      <div class="card-body">
+        <h3>{p.question}</h3>
+        <p>{p.summary}</p>
+        <div class="card-meta">
+          <span class="tag">{chartName(p.recommended)}</span>
+          <span class="tag">{goalLabel(p.goal)}</span>
+        </div>
+      </div>
+    </a>
+  ) : (
+    <div class="card soon" data-goal={p.goal} data-industries={p.industries.join(' ')}>
+      <span class="preview">Coming soon</span>
+      <div class="card-body">
+        <h3>{p.question}</h3>
+        <p>{p.summary}</p>
+        <div class="card-meta">
+          <span class="tag">{chartName(p.recommended)}</span>
+        </div>
+      </div>
+    </div>
+  )
+}

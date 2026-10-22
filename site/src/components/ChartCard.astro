@@ -1,0 +1,22 @@
+---
+import Preview from './Preview.astro';
+import { goalLabel, type Chart } from '../lib/content';
+import { url } from '../lib/url';
+interface Props {
+  chart: Chart;
+  state?: string;
+}
+const { chart: c, state = 'sample' } = Astro.props;
+---
+
+<a class="card chart-card" href={url(`charts/${c.id}/`)} data-chart={c.id} data-states={['sample', ...c.datasets.map((d) => d.key)].join(' ')}>
+  <Preview chart={c.id} state={state} alt={`${c.name} example`} />
+  <div class="card-body">
+    <h3>{c.name}</h3>
+    <p>{c.summary}</p>
+    <p class="state-note" hidden></p>
+    <div class="card-meta">
+      {c.goals.map((g) => <span class="tag">{goalLabel(g)}</span>)}
+    </div>
+  </div>
+</a>

@@ -1,0 +1,8 @@
+id: all-the-numbers
+question: Show all the numbers
+summary: A dense table where the important cells stand out.
+goal: compare
+industries: [ecommerce, saas, marketing, finance, operations, research]
+keywords: [data table, report, conditional formatting, spreadsheet]
+recommended: data-table
+why: When people need to look things up, a well-formatted table beats any chart; colour only the cells that need attention.

@@ -1,0 +1,11 @@
+id: where-users-drop-off
+question: Where do users drop off?
+summary: Visits to cart to checkout to purchase, with the loss at each step.
+goal: flow
+industries: [ecommerce, saas, marketing]
+keywords: [conversion funnel, checkout funnel, drop-off, onboarding funnel]
+recommended: funnel
+alternatives:
+  - id: bar-horizontal
+    when: Steps aren't strictly sequential.
+why: Ordered stages with shrinking counts; the gaps between bars are the story, so label each step's conversion.

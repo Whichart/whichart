@@ -1,0 +1,21 @@
+---
+// Pre-rendered preview of a chart's reference implementation, in light and dark.
+import { url } from '../lib/url';
+import { chartById } from '../lib/content';
+interface Props {
+  chart: string;
+  state?: string;
+  alt: string;
+  eager?: boolean;
+}
+const { chart, state = 'sample', alt, eager = false } = Astro.props;
+const src = (mode: string) => url(`previews/${chart}/${state}-${mode}.png`);
+const loading = eager ? 'eager' : 'lazy';
+// Sizes match the render harness: charts 480×300, components 300×170, at 2×.
+const [w, h] = chartById(chart)?.reference === 'vanilla' ? [600, 340] : [960, 600];
+---
+
+<span class="preview" data-chart={chart}>
+  <img class="only-light" src={src('light')} alt={alt} loading={loading} decoding="async" width={w} height={h} />
+  <img class="only-dark" src={src('dark')} alt="" aria-hidden="true" loading={loading} decoding="async" width={w} height={h} />
+</span>

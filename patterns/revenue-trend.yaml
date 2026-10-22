@@ -1,0 +1,14 @@
+id: revenue-trend
+question: How is revenue trending?
+summary: Daily revenue over the last 90 days, with gaps and peaks handled.
+goal: trend
+industries: [ecommerce, saas, finance]
+keywords: [sales over time, daily revenue, time series, growth]
+recommended: line
+alternatives:
+  - id: area
+    when: The total volume matters, like cumulative revenue.
+  - id: sparkline
+    when: It sits inside a KPI tile.
+why: One measure over regular periods is exactly what a line shows best. Missing days break the line instead of hiding a closure.
+example: Daily revenue for an online store, last 90 days

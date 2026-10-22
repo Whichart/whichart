@@ -1,0 +1,11 @@
+id: compare-categories
+question: How do categories compare?
+summary: Sales or users per category, sorted so the order tells the story.
+goal: compare
+industries: [ecommerce, saas, marketing, operations, research]
+keywords: [bar chart, compare groups, by category, by region]
+recommended: bar-horizontal
+alternatives:
+  - id: data-table
+    when: Readers need exact values for many categories.
+why: Bars on a common baseline are the most accurately compared shape; horizontal bars fit long names.

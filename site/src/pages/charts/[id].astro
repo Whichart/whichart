@@ -1,0 +1,202 @@
+---
+import { Code } from 'astro:components';
+import Base from '../../layouts/Base.astro';
+import Preview from '../../components/Preview.astro';
+import { chartById, chartName, chartStates, charts, goalLabel, patterns } from '../../lib/content';
+import { url, REPO } from '../../lib/url';
+
+export function getStaticPaths() {
+  return charts().map((c) => ({ params: { id: c.id } }));
+}
+const c = chartById(Astro.params.id!)!;
+const states = chartStates(c);
+const usedBy = patterns().filter((p) => p.recommended === c.id || p.alternatives.some((a) => a.id === c.id));
+const title = `${c.name}: when to use it, examples & code | Whichart`;
+const description = `${c.summary} When to use a ${c.name.toLowerCase()} (also called ${c.aliases.slice(0, 3).join(', ')}), how it handles empty and messy data, and ready code for ${c.code.map((x) => x.label).join(', ')}.`;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: `${c.name}: when to use it, examples & code`,
+  description: c.summary,
+  keywords: [c.name, ...c.aliases].join(', '),
+  image: new URL(url(`previews/${c.id}/sample-light.png`), Astro.site).href,
+  license: 'https://creativecommons.org/licenses/by/4.0/',
+};
+const playground = {
+  id: c.id,
+  datasets: Object.fromEntries(c.datasets.map((d) => [d.key, { rows: d.rows, options: d.options }])),
+};
+---
+
+<Base title={title} description={description} image={`previews/${c.id}/sample-light.png`} jsonLd={jsonLd}>
+  <div class="wrap">
+    <p class="breadcrumb"><a href={url('charts/')}>Charts</a> › {c.name}</p>
+    <header class="chart-head">
+      <h1>{c.name}</h1>
+      <p class="lede">{c.summary}</p>
+      <p class="muted aka">Also called: {c.aliases.join(', ')}</p>
+      <ul class="chips">{c.goals.map((g) => <li><a class="chip" href={url(`categories/${g}/`)}>{goalLabel(g)}</a></li>)}</ul>
+    </header>
+
+    <section class="playground" aria-label="Live example">
+      <div class="pg-tabs" role="tablist" aria-label="Data">
+        <button class="chip" role="tab" aria-pressed="true" data-key="sample">Normal data</button>
+        {states.map((s) => <button class="chip" role="tab" aria-pressed="false" data-key={s.id}>{s.label}</button>)}
+      </div>
+      <div class="pg-stage">
+        <div class="pg-chart" id="pg-chart" data-kind={c.reference}>
+          <Preview chart={c.id} alt={`${c.name} with sample data`} eager />
+        </div>
+      </div>
+      <p class="pg-note" id="pg-note" aria-live="polite">Sample data: {String(c.datasets[0].options.label ?? '')}. Pick an edge case to see how the chart handles it.</p>
+    </section>
+
+    <div class="cols">
+      <section>
+        <h2>Use it when</h2>
+        <ul>{c.doc.guidance.useWhen.map((x: string) => <li>{x}</li>)}</ul>
+        <h2>Avoid it when</h2>
+        <ul>{c.doc.guidance.avoidWhen.map((x: string) => <li>{x}</li>)}</ul>
+      </section>
+      <section>
+        <h2>Alternatives</h2>
+        <ul class="alts">
+          {
+            c.doc.guidance.alternatives.map((a: { id: string; when: string }) => (
+              <li>
+                {chartById(a.id) ? <a href={url(`charts/${a.id}/`)}>{chartName(a.id)}</a> : <strong>{chartName(a.id)}</strong>}
+                {!chartById(a.id) && <span class="tag">coming soon</span>}
+                <span class="muted"> {a.when}</span>
+              </li>
+            ))
+          }
+        </ul>
+        {
+          usedBy.length > 0 && (
+            <>
+              <h2>Patterns that use it</h2>
+              <ul>{usedBy.map((p) => (p.ready ? <li><a href={url(`patterns/${p.id}/`)}>{p.question}</a></li> : <li>{p.question} <span class="tag">coming soon</span></li>))}</ul>
+            </>
+          )
+        }
+      </section>
+    </div>
+
+    <section class="section">
+      <h2>Edge cases</h2>
+      <div class="states">
+        {
+          states.map((s) => (
+            <figure class="state">
+              <Preview chart={c.id} state={s.id} alt={`${c.name}: ${s.label}`} />
+              <figcaption>
+                <strong>{s.label}</strong> <span class="tag">{s.treatment}</span>
+                <span class="muted">{s.description}</span>
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section" id="code">
+      <h2>Code</h2>
+      <p class="muted">Public domain (CC0): copy it, change it, ship it. Colours come from the <a href={url('theme/')}>Whichart theme</a>.</p>
+      <div class="code-tabs" role="tablist" aria-label="Code">
+        {c.code.map((x, i) => <button class="chip" role="tab" aria-pressed={i === 0 ? 'true' : 'false'} data-tab={x.target}>{x.label}</button>)}
+      </div>
+      {
+        c.code.map((x, i) => (
+          <div class="code-panel" data-panel={x.target} hidden={i !== 0}>
+            <div class="code-bar">
+              <code>{x.file}</code>
+              <button class="btn secondary copy" type="button" data-copy={x.target}>Copy</button>
+            </div>
+            <Code code={x.source} lang={x.lang as any} themes={{ light: 'github-light', dark: 'github-dark' }} defaultColor={false} />
+            <textarea hidden data-source={x.target}>{x.source}</textarea>
+          </div>
+        ))
+      }
+    </section>
+
+    <section class="section prose">
+      <h2>Guide</h2>
+      <Fragment set:html={c.guideHtml} />
+    </section>
+
+    <p class="muted source">
+      Source: <a href={`${REPO}/tree/main/charts/${c.id}`}>charts/{c.id}</a> ·
+      <a href={`${REPO}/issues/new?title=${encodeURIComponent(`${c.name}: `)}`}>Report a problem with this chart</a>
+    </p>
+  </div>
+
+  <script type="application/json" id="pg-data" set:html={JSON.stringify(playground)} />
+  <script type="application/json" id="pg-states" set:html={JSON.stringify(Object.fromEntries(states.map((s) => [s.id, `${s.label}: ${s.description}`])))} />
+  <script>
+    const data = JSON.parse(document.getElementById('pg-data')!.textContent!);
+    const notes = JSON.parse(document.getElementById('pg-states')!.textContent!);
+    const stage = document.getElementById('pg-chart')!;
+    const note = document.getElementById('pg-note')!;
+    const tabs = [...document.querySelectorAll<HTMLButtonElement>('.pg-tabs [data-key]')];
+
+    async function show(key: string) {
+      for (const t of tabs) t.setAttribute('aria-pressed', String(t.dataset.key === key));
+      const { render } = await import('../../scripts/registry');
+      const d = data.datasets[key];
+      stage.replaceChildren();
+      await render(stage, data.id, d.rows, d.options);
+      note.textContent = key === 'sample' ? 'Sample data. Hover for exact values; pick an edge case above.' : notes[key];
+    }
+    for (const t of tabs) t.addEventListener('click', () => show(t.dataset.key!));
+    // Upgrade the static preview to the live chart once the page is idle.
+    ('requestIdleCallback' in window ? requestIdleCallback : setTimeout)(() => show('sample'));
+
+    for (const b of document.querySelectorAll<HTMLButtonElement>('.code-tabs [data-tab]')) {
+      b.addEventListener('click', () => {
+        for (const o of document.querySelectorAll<HTMLButtonElement>('.code-tabs [data-tab]')) o.setAttribute('aria-pressed', String(o === b));
+        for (const p of document.querySelectorAll<HTMLElement>('.code-panel')) p.hidden = p.dataset.panel !== b.dataset.tab;
+      });
+    }
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+      b.addEventListener('click', async () => {
+        const src = document.querySelector<HTMLTextAreaElement>(`[data-source="${b.dataset.copy}"]`)!.value;
+        try {
+          await navigator.clipboard.writeText(src);
+          b.textContent = 'Copied';
+        } catch {
+          b.textContent = 'Copy failed';
+        }
+        setTimeout(() => (b.textContent = 'Copy'), 1500);
+      });
+    }
+  </script>
+</Base>
+
+<style>
+  .chart-head h1 { font-size: clamp(28px, 4vw, 40px); margin: 0 0 8px; }
+  .lede { font-size: 18px; margin: 0 0 4px; max-width: 60ch; }
+  .aka { margin: 0 0 12px; font-size: 14px; }
+  .playground { margin-top: 24px; background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: 14px; padding: 16px; }
+  .pg-tabs, .code-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .pg-stage { display: grid; place-items: center; }
+  .pg-chart { width: 100%; max-width: 760px; }
+  .pg-chart[data-kind='echarts'] { height: 360px; }
+  .pg-chart[data-kind='vanilla'] { max-width: 360px; min-height: 170px; }
+  .pg-chart :global(.preview img) { width: 100%; height: auto; }
+  .pg-note { margin: 12px 0 0; font-size: 14px; color: var(--wc-ink-secondary); }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px 32px; margin-top: 24px; }
+  .cols h2, .section h2 { font-size: 20px; }
+  .cols ul { padding-left: 20px; }
+  .alts li { margin-bottom: 6px; }
+  .states { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .state { margin: 0; background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: 12px; overflow: hidden; }
+  .state :global(.preview) { display: block; aspect-ratio: 16 / 10; padding: 8px 8px 0; }
+  .state :global(.preview img) { width: 100%; height: 100%; object-fit: contain; }
+  .state figcaption { padding: 8px 12px 12px; display: grid; gap: 2px; font-size: 13px; }
+  .code-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+  .code-panel :global(pre) { border: 1px solid var(--wc-border); border-radius: 10px; padding: 16px; overflow-x: auto; max-height: 560px; font-size: 13px; line-height: 1.5; background: var(--wc-surface) !important; }
+  .code-panel :global(pre span) { color: var(--shiki-light); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .code-panel :global(pre span) { color: var(--shiki-dark); } }
+  :root[data-theme='dark'] .code-panel :global(pre span) { color: var(--shiki-dark); }
+  .source { margin-top: 32px; font-size: 14px; }
+</style>

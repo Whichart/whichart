@@ -1,0 +1,11 @@
+id: what-sells-best
+question: What sells best?
+summary: Top products by revenue, with exact values next to the bars.
+goal: ranking
+industries: [ecommerce]
+keywords: [top products, best sellers, leaderboard, top 10]
+recommended: top-n-table
+alternatives:
+  - id: bar-horizontal
+    when: Exact values matter less than the ranking.
+why: People scan names and need exact numbers; inline bars add the comparison without losing the table.

@@ -111,6 +111,7 @@ test('recommend: several series are routed away from the single-series line', ()
 test('recommend: KPI tile on a time series asks to summarise first', () => {
   const kpi = recommend({ csv: lineSample }).ranked.find((x) => x.id === 'kpi-tile-delta')!;
   assert.ok(kpi.warnings.some((w) => w.text.startsWith('Shows one number')));
+  assert.equal(kpi.encoding.time, 'date', 'keeps the time column so the tile can summarise by period');
 });
 
 test('recommend: an explicit goal outweighs inferred ones', () => {

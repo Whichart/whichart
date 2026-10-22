@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+---
+
+<Base title="Page not found | Whichart" description="This page doesn't exist." noindex>
+  <div class="wrap" style="padding: 64px 16px">
+    <h1>Page not found</h1>
+    <p class="muted">The chart or pattern you’re looking for may not be written yet.</p>
+    <p><a class="btn" href={url()}>Browse patterns and charts</a></p>
+  </div>
+</Base>

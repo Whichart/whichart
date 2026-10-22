@@ -1,127 +1,191 @@
 ---
-const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
-const repo = 'https://github.com/Whichart/whichart';
+import Base from '../layouts/Base.astro';
+import PatternCard from '../components/PatternCard.astro';
+import ChartCard from '../components/ChartCard.astro';
+import TryYourData from '../components/TryYourData.astro';
+import { INDUSTRIES, STATES, charts, patterns, plannedCount } from '../lib/content';
+import { searchIndex } from '../lib/search';
+import { url } from '../lib/url';
+
+const all = charts();
+const ps = patterns();
+const ready = ps.filter((p) => p.ready).length;
+const title = 'Whichart: Modern data visualization examples, tested on real data';
+const description =
+  'Modern chart examples for product dashboards, tested on real data. Pick the right chart, handle edge cases, and copy ready code for ECharts, Recharts and Plotly.';
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Whichart',
+  description,
+  url: new URL(url(), Astro.site).href,
+  license: 'https://creativecommons.org/publicdomain/zero/1.0/',
+};
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Whichart: Modern data visualization examples, tested on real data</title>
-    <meta
-      name="description"
-      content="Modern chart examples for product dashboards, tested on real data. Pick the right chart, handle edge cases, and copy ready code for ECharts, Recharts and Plotly."
-    />
-    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-    <style>
-      :root {
-        --bg: #fbfbfa;
-        --surface: #ffffff;
-        --text: #1b1d21;
-        --muted: #5b6070;
-        --border: #e3e4e8;
-        --accent: #2f6fde;
-        color-scheme: light dark;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #111317;
-          --surface: #191c22;
-          --text: #eceef2;
-          --muted: #a2a8b6;
-          --border: #2b2f38;
-          --accent: #6f9cf0;
-        }
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        background: var(--bg);
-        color: var(--text);
-        font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-        padding: 48px 16px;
-      }
-      main {
-        width: 100%;
-        max-width: 640px;
-      }
-      .wordmark {
-        font-size: clamp(40px, 9vw, 64px);
-        font-weight: 700;
-        letter-spacing: -0.03em;
-        margin: 0 0 8px;
-      }
-      .wordmark span {
-        color: var(--accent);
-      }
-      .tagline {
-        font-size: 20px;
-        color: var(--muted);
-        margin: 0 0 40px;
-      }
-      ul {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 40px;
-        display: grid;
-        gap: 12px;
-      }
-      li {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 14px 16px;
-      }
-      li strong {
-        display: block;
-      }
-      li em {
-        color: var(--muted);
-        font-style: normal;
-      }
-      .status {
-        color: var(--muted);
-        font-size: 14px;
-      }
-      a {
-        color: var(--accent);
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <h1 class="wordmark">whi<span>chart</span></h1>
-      <p class="tagline">Modern data visualization examples, tested on real data.</p>
-      <ul>
-        <li>
-          <strong>Pick the right chart</strong>
-          <em>Drop your data in and see every chart ranked against it, with the reasons why and why not.</em>
-        </li>
-        <li>
-          <strong>Handle the edge cases</strong>
-          <em>Empty data, zeros, outliers, no previous period: see how each chart should behave.</em>
-        </li>
-        <li>
-          <strong>Ship working code</strong>
-          <em>Tested ECharts, Recharts and Plotly code, with one consistent theme.</em>
-        </li>
-        <li>
-          <strong>Built for agents too</strong>
-          <em>MCP server, Agent Skill, llms.txt and a JSON catalog.</em>
-        </li>
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <section class="hero">
+    <div class="wrap">
+      <h1>Modern data visualization examples, tested on real data</h1>
+      <p class="lede">
+        Find the right chart for your dashboard, see how it handles empty, messy and edge-case data, and copy code that works: ECharts,
+        Recharts and Plotly.
+      </p>
+      <div class="search">
+        <label class="visually-hidden" for="q">Search charts and patterns</label>
+        <input id="q" type="search" placeholder='Search "funnel", "stat card", "show drop-off"…' autocomplete="off" />
+        <button class="btn secondary" type="button" id="try-open" aria-controls="try" aria-expanded="false">Try your data</button>
+        <ul id="results" class="results" hidden></ul>
+      </div>
+      <ul class="chips industries" aria-label="Industries">
+        {INDUSTRIES.filter((i) => i.id !== 'research').map((i) => <li><a class="chip" href={url(`industries/${i.id}/`)}>{i.label}</a></li>)}
       </ul>
-      <p class="status">
-        In progress. Follow along on <a href={repo}>GitHub</a> or read the <a href={`${repo}/blob/main/PLAN.md`}>project plan</a>.
+    </div>
+  </section>
+
+  <div class="wrap">
+    <TryYourData />
+
+    <section class="section" id="patterns" aria-labelledby="patterns-title">
+      <div class="section-head">
+        <h2 id="patterns-title">Patterns</h2>
+        <p class="muted">Questions builders ask, answered with the right chart. {ready} of {ps.length} ready.</p>
+      </div>
+      <div class="grid">{ps.filter((p) => p.ready).map((p) => <PatternCard pattern={p} />)}</div>
+      <div class="next">
+        <span class="muted">Coming next:</span>
+        <ul class="chips">{ps.filter((p) => !p.ready).map((p) => <li><span class="chip soon-chip" title={p.summary}>{p.question}</span></li>)}</ul>
+      </div>
+    </section>
+
+    <section class="section" id="charts" aria-labelledby="charts-title">
+      <div class="section-head">
+        <h2 id="charts-title">Charts</h2>
+        <label class="state-pick">
+          <span class="muted">Show every chart with</span>
+          <select id="state">
+            <option value="sample">Normal data</option>
+            {STATES.map((s) => <option value={s.id}>{s.label}</option>)}
+          </select>
+        </label>
+      </div>
+      <p class="muted state-question" id="state-question" hidden></p>
+      <div class="grid" id="chart-grid">{all.map((c) => <ChartCard chart={c} />)}</div>
+      <p class="muted more">
+        {all.length} of {plannedCount()} charts are written. <a href={url('charts/')}>See all, including what’s next</a>.
       </p>
-      <p class="status">
-        Design previews: <a href={`${base}preview/home/`}>homepage wireframe</a> · <a href={`${base}preview/theme/`}>default theme</a>
-      </p>
-    </main>
-  </body>
-</html>
+    </section>
+
+    <section class="section agents-strip" aria-labelledby="agents-title">
+      <div>
+        <h2 id="agents-title">For AI agents</h2>
+        <p class="muted">The same rules, as tools: recommend a chart, get its code, review a choice. MCP server coming soon.</p>
+      </div>
+      <a class="btn secondary" href={url('agents/')}>Set up your agent</a>
+    </section>
+  </div>
+
+  <script type="application/json" id="search-index" set:html={JSON.stringify(searchIndex())} />
+  <script
+    type="application/json"
+    id="state-data"
+    set:html={JSON.stringify({
+      questions: Object.fromEntries(STATES.map((s) => [s.id, s.question])),
+      treatments: Object.fromEntries(all.map((c) => [c.id, c.doc.states])),
+    })}
+  />
+  <script>
+    import { initSearch } from '../scripts/search';
+
+    initSearch(
+      document.getElementById('q') as HTMLInputElement,
+      document.getElementById('results')!,
+      JSON.parse(document.getElementById('search-index')!.textContent!),
+    );
+
+    // Edge-case switch: every chart card shows how it handles the chosen state.
+    const { questions, treatments } = JSON.parse(document.getElementById('state-data')!.textContent!);
+    const select = document.getElementById('state') as HTMLSelectElement;
+    const question = document.getElementById('state-question')!;
+
+    function applyState(state: string) {
+      question.hidden = state === 'sample';
+      question.textContent = questions[state] ?? '';
+      for (const card of document.querySelectorAll<HTMLElement>('.chart-card')) {
+        const id = card.dataset.chart!;
+        const has = card.dataset.states!.split(' ').includes(state);
+        const note = card.querySelector<HTMLElement>('.state-note')!;
+        for (const img of card.querySelectorAll('img')) {
+          const mode = img.classList.contains('only-dark') ? 'dark' : 'light';
+          img.src = img.src.replace(/[^/]+-(light|dark)\.png$/, `${has ? state : 'sample'}-${mode}.png`);
+        }
+        const t = treatments[id]?.[state];
+        note.hidden = state === 'sample' || !t;
+        note.textContent = t ? (t.treatment === 'not-applicable' ? `Not applicable: ${t.description}` : t.description) : '';
+        card.classList.toggle('dim', state !== 'sample' && !has);
+      }
+      const u = new URL(location.href);
+      if (state === 'sample') u.searchParams.delete('state');
+      else u.searchParams.set('state', state);
+      history.replaceState(null, '', u);
+    }
+    select.addEventListener('change', () => applyState(select.value));
+    const initial = new URLSearchParams(location.search).get('state');
+    if (initial && questions[initial]) {
+      select.value = initial;
+      applyState(initial);
+    }
+  </script>
+</Base>
+
+<style>
+  .hero { background: var(--wc-surface); border-bottom: 1px solid var(--wc-border); padding: 48px 0 32px; }
+  .hero h1 { font-size: clamp(30px, 5vw, 48px); margin: 0 0 12px; max-width: 18ch; }
+  .lede { font-size: 18px; color: var(--wc-ink-secondary); max-width: 60ch; margin: 0 0 24px; }
+  .search { position: relative; display: flex; gap: 8px; max-width: 720px; flex-wrap: wrap; }
+  .search input {
+    flex: 1 1 280px;
+    min-width: 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--wc-axis);
+    background: var(--wc-page);
+    font-size: 16px;
+  }
+  .results {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 4;
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    background: var(--wc-surface);
+    border: 1px solid var(--wc-border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  }
+  .results :global(a), .results :global(span:not(.tag)) {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 8px 10px; border-radius: 6px; color: var(--wc-ink-primary); text-decoration: none;
+  }
+  .results :global(a:hover) { background: var(--wc-page); }
+  .results :global(.search-empty) { padding: 8px 10px; color: var(--wc-ink-secondary); }
+  .industries { margin-top: 16px; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .state-pick { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .state-pick select { background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: 8px; padding: 4px 8px; }
+  .state-question { margin: -4px 0 16px; font-weight: 500; color: var(--wc-ink-primary); }
+  .more { margin-top: 16px; }
+  .next { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; margin-top: 16px; font-size: 14px; }
+  .soon-chip { cursor: default; color: var(--wc-ink-secondary); }
+  :global(.card.dim) { opacity: 0.55; }
+  :global(.state-note) { color: var(--wc-ink-primary) !important; }
+  .agents-strip {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+    background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: 14px; padding: 20px;
+  }
+  .agents-strip h2 { margin: 0 0 4px; font-size: 18px; }
+  .agents-strip p { margin: 0; }
+</style>

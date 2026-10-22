@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import { url, REPO } from '../lib/url';
+const site = new URL(url(), Astro.site).href;
+const title = 'Whichart for AI agents: chart rules, code and review as tools | Whichart';
+const description = 'Give your coding agent Whichart: recommend the right chart for data, get tested code, and review a chart choice before shipping. llms.txt, a JSON catalogue, and an MCP server.';
+const tools = [
+  ['recommend_chart', 'Data or a schema, plus an optional goal and space → ranked charts with reasons, and an avoid list.'],
+  ['get_chart', 'Chart id and library → guidance, edge-case rules and ready code.'],
+  ['list_charts', 'Browse by category, data shape or industry.'],
+  ['review_chart', '“Is this chart right for this data?” → a verdict, problems and better options. Call it before showing any chart.'],
+];
+---
+
+<Base title={title} description={description}>
+  <div class="wrap ag">
+    <h1>For AI agents</h1>
+    <p class="lede">Agents write most chart code now, and they often pick the wrong chart or miss the edge cases. Whichart gives them the same rules people see on this site, as files and tools.</p>
+
+    <section class="section">
+      <h2>Available now</h2>
+      <ul class="list">
+        <li><a href={url('llms.txt')}><code>/llms.txt</code></a>: an index of every chart and pattern for agents that read docs.</li>
+        <li><a href={url('catalog.json')}><code>/catalog.json</code></a>: every chart’s data-shape rules, fit rules and context fit, as JSON.</li>
+        <li>The recommendation engine as a command-line tool, from the repo: <code>pnpm whichart data.csv --goal trend</code> (<a href={`${REPO}/tree/main/packages/engine`}>docs</a>).</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Coming soon: MCP server and Agent Skill</h2>
+      <p class="muted">One command for Claude Code, Cursor, Windsurf and VS Code. Tools:</p>
+      <table>
+        <tbody>{tools.map(([name, what]) => <tr><td><code>{name}</code></td><td>{what}</td></tr>)}</tbody>
+      </table>
+      <p class="muted">Planned setup, once it’s published:</p>
+      <pre><code>npx @whichart/mcp</code></pre>
+      <p class="muted">Want to know when it ships? <a href={REPO}>Watch the repository on GitHub</a>.</p>
+    </section>
+
+    <section class="section">
+      <h2>Tell your agent</h2>
+      <p class="muted">Until the MCP server ships, add this to your agent’s instructions (CLAUDE.md, .cursorrules, AGENTS.md):</p>
+      <pre><code>Before adding a chart, check {site}llms.txt for the right chart type,
+its edge cases (empty data, zeros, no previous period, gaps in time)
+and ready code. Never use a dual y-axis.</code></pre>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .ag h1 { font-size: clamp(28px, 4vw, 40px); margin: 24px 0 8px; }
+  .lede { font-size: 18px; max-width: 64ch; color: var(--wc-ink-secondary); }
+  .list li { margin-bottom: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--wc-grid); vertical-align: top; }
+  pre { background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: 10px; padding: 14px; overflow-x: auto; }
+</style>

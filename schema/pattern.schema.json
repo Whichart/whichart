@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://whichart.github.io/schema/pattern.schema.json",
+  "title": "Whichart pattern (patterns/<id>.yaml)",
+  "description": "A builder's question answered with charts. Holds no code; it references chart entries and adds framing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "question",
+    "summary",
+    "goal",
+    "industries",
+    "recommended",
+    "why"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "question": {
+      "description": "In the builder's words, ending with ? or a verb phrase.",
+      "type": "string",
+      "maxLength": 60
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "goal": {
+      "enum": [
+        "trend",
+        "compare",
+        "part-of-whole",
+        "ranking",
+        "flow",
+        "distribution",
+        "relationship",
+        "kpi"
+      ]
+    },
+    "industries": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "ecommerce",
+          "saas",
+          "marketing",
+          "finance",
+          "operations",
+          "research"
+        ]
+      }
+    },
+    "keywords": {
+      "description": "Extra search terms.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "recommended": {
+      "description": "Chart id.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "when"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "when": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "why": {
+      "description": "Why the recommended chart answers the question.",
+      "type": "string",
+      "minLength": 20
+    },
+    "example": {
+      "description": "What the sample shows, e.g. 'Daily revenue for an online store, last 90 days'.",
+      "type": "string"
+    }
+  }
+}

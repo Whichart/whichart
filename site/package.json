@@ -8,7 +8,10 @@
     "preview": "astro preview"
   },
   "dependencies": {
+    "@whichart/engine": "workspace:*",
+    "@whichart/tokens": "workspace:*",
     "astro": "7.3.8",
-    "@whichart/tokens": "workspace:*"
+    "marked": "18.1.0",
+    "yaml": "2.9.0"
   }
 }

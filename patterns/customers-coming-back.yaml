@@ -1,0 +1,11 @@
+id: customers-coming-back
+question: Are customers coming back?
+summary: Retention by signup or first-order month, as a cohort grid.
+goal: trend
+industries: [ecommerce, saas]
+keywords: [retention, cohort analysis, churn, repeat customers]
+recommended: cohort-heatmap
+alternatives:
+  - id: multi-line
+    when: Only a few cohorts matter.
+why: Each row is a cohort and each column a month since joining, so you can compare how newer customers stick against older ones.

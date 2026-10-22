@@ -37,3 +37,40 @@ later:
   - calendar-heatmap
   - choropleth
   - small-multiples
+# Display names for charts that aren't written yet.
+names:
+  kpi-tile-delta: KPI tile with change
+  kpi-tile-sparkline: KPI tile with sparkline
+  progress-meter: Progress meter
+  line: Line chart
+  multi-line: Multi-line chart
+  area: Area chart
+  sparkline: Sparkline
+  period-comparison: Current vs previous period
+  bar-horizontal: Horizontal bar chart
+  stacked-bar: Stacked bar chart
+  top-n-table: Top-N table
+  donut: Donut chart
+  funnel: Funnel chart
+  cohort-heatmap: Cohort retention heatmap
+  data-table: Data table
+  bullet-chart: Bullet chart
+  gauge: Gauge
+  stacked-area: Stacked area chart
+  column-over-time: Column chart over time
+  bar-line-shared-axis: Bar and line on one axis
+  grouped-bar: Grouped bar chart
+  stacked-bar-100: 100% stacked bar chart
+  dot-plot: Dot plot
+  slope-chart: Slope chart
+  treemap: Treemap
+  waterfall: Waterfall chart
+  sankey: Sankey diagram
+  histogram: Histogram
+  box-plot: Box plot
+  scatter: Scatter plot
+  bubble: Bubble chart
+  heatmap-hour-weekday: Hour × weekday heatmap
+  calendar-heatmap: Calendar heatmap
+  choropleth: Choropleth map
+  small-multiples: Small multiples

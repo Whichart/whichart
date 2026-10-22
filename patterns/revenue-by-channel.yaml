@@ -1,0 +1,11 @@
+id: revenue-by-channel
+question: Where does revenue come from?
+summary: Each channel's share of revenue, and how the mix changes.
+goal: part-of-whole
+industries: [ecommerce, marketing, saas]
+keywords: [traffic source, channel mix, revenue breakdown, share]
+recommended: stacked-bar
+alternatives:
+  - id: donut
+    when: Five or fewer channels, one period only.
+why: Stacked bars show both the total and the mix per period; a donut can only show one moment.
