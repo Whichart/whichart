@@ -1,7 +1,7 @@
 # Whichart — Project Plan
 
-> **The reference agents and researchers check before making a chart.**
-> Pick the right chart, design it well, handle the edge cases, ship working code.
+> **Modern data visualization examples, tested on real data.**
+> Find the right chart for your dashboard, see how it handles empty, messy and edge-case data, and copy code that works: ECharts, Recharts and Plotly.
 
 Status: **Draft for review** · Owner: project creator · Site: <https://whichart.github.io>
 
@@ -20,7 +20,17 @@ What's still missing, especially now that AI agents generate most chart code:
 
 Whichart is a **decision layer + design standard + tested code**, usable by people *and* agents.
 
-Origin: real pain designing the analytics dashboard for an eCommerce product.
+Origin: real pain designing the analytics dashboard for an eCommerce product. Conversations with other builders confirmed it: **it's hard to find data viz examples that are both solid and modern**; the well-known catalogues haven't been updated in years.
+
+### 1.1 Who it's for
+
+| Audience | How they think | What they need from Whichart |
+|---|---|---|
+| **Builders**: product designers and frontend developers making analytics pages and admin dashboards | In metrics and questions: "this month vs last", "where do users drop off" | Modern examples, the right chart for the question, edge cases, ready code |
+| **AI coding agents** working for builders | Whatever the builder asks for | Machine-readable rules, `review_chart`, code. Reached through builders (MCP, Agent Skill) |
+| **Researchers and university groups** | In figures for results: comparison with uncertainty, distributions | Shared chart types now; scientific charts and matplotlib/ggplot2 in a later phase, plus listings in library research guides |
+
+The real gap: **the step between "I have this metric" and "a chart that ships and survives real data"**, increasingly taken by an agent on someone's behalf.
 
 ## 2. Scope
 
@@ -32,25 +42,52 @@ Origin: real pain designing the analytics dashboard for an eCommerce product.
 
 ## 3. Product surfaces
 
-### 3.1 Homepage — the gallery that responds to your data
+### 3.1 Homepage: browse first
 
-One page, always showing the chart grid:
+Modelled on reference libraries like Mobbin (visual-first, search-first, dense grid of modern previews), but free with no account.
 
-- **No input** → normal gallery, grouped by goal, rendered with sample data.
-- **Data dropped** (CSV/JSON, in-browser only) → every card re-renders with *the user's data*, sorted by fit, with plain-language reasons. Unsuitable charts stay visible, greyed out, with a **"why not"** badge.
-- **Filters:** Goal (trend, compare, part-of-whole, ranking, flow/funnel, distribution, relationship, KPI) · Space (tile, card, half, full) · **State** (normal + 10 edge cases) applied to the *whole grid*.
-- Filters live in the URL (`?goal=trend&state=empty`) — every view is shareable.
-- Agent hint on the page: `npx @whichart/mcp`.
+```
+whichart      Patterns · Charts · Edge cases · For agents
+Modern data visualization examples, tested on real data
+[ Search "funnel", "stat card", "show drop-off"…  ]  [Try your data]
+eCommerce · SaaS · Marketing · Finance · Operations
+Patterns grid → Edge cases grid → Charts A–Z → For agents: npx @whichart/mcp
+```
 
-### 3.2 Other pages
+- **Search** understands chart names, synonyms ("stat card", "doughnut") and questions ("drop off" → funnel).
+- **Patterns lead** the grid (see 4.3). Charts are the second tab.
+- **Try your data** is a mode, not the front door: drop a CSV and the same grid re-ranks with reasons and a "not a good fit" section.
+- **Edge-case filter** switches every card to one state at once (empty, new store, zeros…).
+- Filters live in the URL, so every view is shareable.
+
+### 3.2 Pages
 
 | Route | Purpose |
 |---|---|
-| `/charts/<id>` | Live playground first (keeps the user's data) → guidance, use/avoid, alternatives → code tabs (ECharts / Recharts / Plotly), copy, download SVG |
+| `/patterns/<id>/` | A builder's question, the recommended chart in context, alternatives, why, edge cases, code |
+| `/charts/<id>/` | Live playground → guidance, use/avoid, alternatives → code tabs, copy, download SVG |
 | `/charts/<id>.md` | Clean Markdown version for agents |
-| `/goals/<goal>` | How to choose within a goal |
-| `/theme` | Paste brand colours → preview everything → download `tokens.json` |
-| `/agents` | MCP setup, Agent Skill, `llms.txt`, API reference |
+| `/categories/<goal>/` | How to choose within a category |
+| `/industries/<id>/` | Patterns for eCommerce, SaaS, Marketing, Finance, Operations (Research later) |
+| `/theme/` | Paste brand colours → preview everything → download `tokens.json` |
+| `/agents/` | Copy-paste setup for Claude Code, Cursor, Windsurf, VS Code; MCP, Agent Skill, `llms.txt`, API |
+
+### 3.3 Vocabulary
+
+Visible labels use the terms library guides and textbooks use; internal ids stay as they are.
+
+| id | Label | Synonyms |
+|---|---|---|
+| `trend` | Change over time | trend, time series |
+| `compare` | Comparison | compare |
+| `part-of-whole` | Parts of a whole | composition, share |
+| `ranking` | Ranking | top N, leaderboard |
+| `flow` | Flow & funnels | conversion, drop-off |
+| `distribution` | Distribution | spread, histogram |
+| `relationship` | Relationship | correlation |
+| `kpi` | Single number | KPI, metric, big number |
+
+Every chart has **at least 3 synonyms**, including the "graph"/"plot" form of its name (e.g. KPI tile: stat card, scorecard, big number, metric card; cohort heatmap: retention chart, cohort analysis).
 
 ## 4. Content model — one folder per chart
 
@@ -77,7 +114,22 @@ charts/<id>/
 - **Per-state behaviour** for all 10 states
 - **Accessibility notes:** colour-blind safety, text/table fallback
 
-### 4.2 The 10 edge-case states
+### 4.2 Patterns
+
+A pattern is a builder's question answered with charts. It holds no code; it references chart entries and adds framing.
+
+```yaml
+id: where-users-drop-off
+question: Where do users drop off?
+industries: [ecommerce, saas]
+recommended: funnel
+alternatives: [bar-horizontal]
+why: Ordered stages with shrinking counts; the gaps are the story.
+```
+
+Launch set (about 15–20), e.g. *Show a KPI and how it changed · This period vs the last · Where do users drop off? · Are customers coming back? · What sells best? · Where does revenue come from? · Are we on track for the target? · How is revenue trending?*
+
+### 4.3 The 10 edge-case states
 
 1. Empty
 2. Single point
@@ -206,6 +258,26 @@ More libraries (Chart.js, Vega-Lite, matplotlib…) can be added by contributors
 - Contributions under **DCO** (`Signed-off-by`), no CLA.
 - No visitor tracking. Feedback via GitHub Discussions + "report an issue" link per chart.
 
+## 13a. Discoverability (all free)
+
+**Titles and descriptions**
+
+| Where | Text |
+|---|---|
+| Site title | Whichart: Modern data visualization examples, tested on real data |
+| Homepage sub-line | Find the right chart for your dashboard, see how it handles empty, messy and edge-case data, and copy code that works: ECharts, Recharts and Plotly. |
+| Meta description | Modern chart examples for product dashboards, tested on real data. Pick the right chart, handle edge cases, and copy ready code for ECharts, Recharts and Plotly. |
+| GitHub / npm | Modern data visualization examples, tested on real data. Chart guidance, edge cases and ready code for people and AI agents. |
+| Chart page | `{Name}: when to use it, examples & code \| Whichart` |
+| Pattern page | `{Question} {chart} example \| Whichart` |
+| Category page | `{Label} charts: which to use \| Whichart` |
+
+Every page: clean URL, its own preview image for link sharing, structured data, synonyms in the visible text, sitemap.
+
+**For people:** Google (chart names and synonyms), link previews, university library research guides (submit once content is live), dataviz communities.
+
+**For agents:** official MCP Registry plus Smithery, Glama and mcp.so; npm keywords; GitHub topics; `llms.txt` / `llms-full.txt`; Agent Skill directories; the `/agents/` setup page.
+
 ## 14. Milestones
 
 | # | Milestone | Contents |
@@ -214,10 +286,10 @@ More libraries (Chart.js, Vega-Lite, matplotlib…) can be added by contributors
 | M1 | Design review | `chart.yaml` schema, `tokens.json` + themes, homepage wireframe |
 | M2 | Pattern entries | KPI tile with change, Line — fully done, establishing the template |
 | M3 | Engine | `@whichart/engine` + recommender tests |
-| M4 | Site | Responsive gallery homepage, chart pages, playground, `/theme` |
-| M5 | Remaining core | The other 13 core entries |
+| M4 | Site | Browse-first homepage with search, patterns (incl. pattern entries and vocabulary), chart pages, playground, "Try your data", `/theme`, titles, preview images, sitemap |
+| M5 | Remaining core | The other 13 core entries and the launch patterns |
 | M6 | Agents | Static files, MCP server, Agent Skill, `/agents` |
-| M7 | Launch | Polish, accessibility pass, README, announcement |
+| M7 | Launch | Polish, accessibility pass, README, announcement, directory and library-guide submissions |
 
 ## 15. Housekeeping (owner)
 
@@ -228,3 +300,4 @@ More libraries (Chart.js, Vega-Lite, matplotlib…) can be added by contributors
 - [ ] Reserve PyPI `whichart`
 - [ ] Reserve GitHub org `whichchart` (misspelling guard → redirect page)
 - [ ] Make org membership public; pin the repo on personal profile
+- [ ] Repo description, website and topics (see 13a; settings can't be changed from Claude's session)
