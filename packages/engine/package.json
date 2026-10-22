@@ -1,0 +1,15 @@
+{
+  "name": "@whichart/engine",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Deterministic, rule-based chart recommender. Profiles your data and ranks charts with reasons.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./catalog.json": "./catalog.json"
+  },
+  "scripts": {
+    "test": "node --import tsx --test \"test/*.test.ts\""
+  }
+}

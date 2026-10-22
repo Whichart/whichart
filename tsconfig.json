@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "types": []
+    "types": ["node"]
   },
-  "include": ["charts/**/*.ts", "charts/**/*.tsx", "scripts/**/*.ts", "scripts/**/*.tsx"]
+  "include": ["charts/**/*.ts", "charts/**/*.tsx", "scripts/**/*.ts", "scripts/**/*.tsx", "packages/engine/**/*.ts"]
 }

@@ -12,14 +12,17 @@
     "dev": "pnpm --filter site dev",
     "build": "pnpm --filter site build",
     "preview": "pnpm --filter site preview",
-    "validate": "pnpm --filter @whichart/tokens check && node scripts/validate-charts.mjs && node scripts/generate-data.mjs --check",
+    "validate": "pnpm --filter @whichart/tokens check && node scripts/validate-charts.mjs && node scripts/generate-data.mjs --check && node scripts/build-catalog.mjs --check",
     "test": "pnpm -r --if-present test",
     "data": "node scripts/generate-data.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "render": "node scripts/render/run.mjs",
-    "sheets": "node scripts/render/run.mjs --sheet"
+    "sheets": "node scripts/render/run.mjs --sheet",
+    "catalog": "node scripts/build-catalog.mjs",
+    "whichart": "node --import tsx packages/engine/src/cli.ts"
   },
   "devDependencies": {
+    "@types/node": "22.19.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "ajv": "8.18.0",
