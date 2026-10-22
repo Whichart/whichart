@@ -1,0 +1,25 @@
+{
+  "name": "@whichart/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Whichart design tokens and generated chart themes.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./tokens.json": "./tokens.json",
+    "./whichart.css": "./generated/whichart.css",
+    "./recharts": "./generated/recharts-theme.js",
+    "./echarts-light.json": "./generated/echarts-light.json",
+    "./echarts-dark.json": "./generated/echarts-dark.json",
+    "./plotly-light.json": "./generated/plotly-light.json",
+    "./plotly-dark.json": "./generated/plotly-dark.json",
+    "./validate": "./src/validate.mjs",
+    "./build": "./src/build.mjs",
+    "./color": "./src/color.mjs"
+  },
+  "scripts": {
+    "build": "node src/cli.mjs build",
+    "check": "node src/cli.mjs check",
+    "test": "node --test \"test/*.test.mjs\""
+  }
+}

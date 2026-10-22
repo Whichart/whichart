@@ -11,4 +11,4 @@ charts/<id>/
   code/             # echarts.ts, recharts.tsx, plotly.py (CC0)
 ```
 
-The schema arrives in milestone M1. See [PLAN.md](../PLAN.md#4-content-model--one-folder-per-chart).
+The schema is `schema/chart.schema.json`; a full example is `schema/examples/line/chart.yaml`. Validate with `pnpm validate`. See [PLAN.md](../PLAN.md#4-content-model--one-folder-per-chart).

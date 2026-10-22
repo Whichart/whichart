@@ -125,7 +125,8 @@ Later: hosted MCP (needs a server; out of scope for GitHub-only hosting).
 - Status colours (up/down/neutral) **configurable** — red = up in CN/JP/KR finance.
 - Light + dark from day one.
 - Number formatting via `Intl` — `$1.2M`, `€1.234,56`, `৳1,20,00,000`, compact forms ("1.2k", "12 lakh").
-- Brand colour: neutral palette proposed at design-review stage.
+- Default palette: 8 categorical colours validated in both modes (see `/preview/theme/`). UI accent is blue step 500 in light mode so white text passes 4.5:1.
+- Never a dual-axis chart. Two measures on different scales become two charts, small multiples, or both indexed to 100.
 
 ## 8. Code targets
 
@@ -150,7 +151,7 @@ More libraries (Chart.js, Vega-Lite, matplotlib…) can be added by contributors
 | Time patterns | Cohort retention heatmap |
 | Table | Data table with conditional formatting |
 
-**After launch (19):** bullet chart, gauge, stacked area, column over time, bar + line combo, grouped bar, 100% stacked bar, dot/lollipop, slope chart, treemap, waterfall, sankey, histogram, box plot, scatter, bubble, hour × weekday heatmap, calendar heatmap, choropleth map.
+**After launch (19):** bullet chart, gauge, stacked area, column over time, bar + line on one shared axis (never a second y-axis), grouped bar, 100% stacked bar, dot/lollipop, slope chart, treemap, waterfall, sankey, histogram, box plot, scatter, bubble, hour × weekday heatmap, calendar heatmap, choropleth map.
 
 ## 10. Tech stack & repo layout
 

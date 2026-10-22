@@ -1,0 +1,166 @@
+{
+  "color": [
+    "#2a78d6",
+    "#eb6834",
+    "#1baf7a",
+    "#eda100",
+    "#e87ba4",
+    "#008300",
+    "#6250d6",
+    "#e34948"
+  ],
+  "backgroundColor": "transparent",
+  "textStyle": {
+    "fontFamily": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "color": "#52514e"
+  },
+  "title": {
+    "textStyle": {
+      "color": "#0b0b0b",
+      "fontSize": 16,
+      "fontWeight": 600
+    },
+    "subtextStyle": {
+      "color": "#52514e"
+    }
+  },
+  "legend": {
+    "textStyle": {
+      "color": "#52514e"
+    },
+    "icon": "roundRect",
+    "itemWidth": 12,
+    "itemHeight": 12
+  },
+  "tooltip": {
+    "backgroundColor": "#fcfcfb",
+    "borderColor": "#c3c2b7",
+    "textStyle": {
+      "color": "#0b0b0b"
+    },
+    "axisPointer": {
+      "lineStyle": {
+        "color": "#c3c2b7"
+      },
+      "crossStyle": {
+        "color": "#c3c2b7"
+      }
+    }
+  },
+  "categoryAxis": {
+    "axisLine": {
+      "show": true,
+      "lineStyle": {
+        "color": "#c3c2b7"
+      }
+    },
+    "axisTick": {
+      "show": false
+    },
+    "axisLabel": {
+      "color": "#898781",
+      "fontSize": 12
+    },
+    "splitLine": {
+      "show": false
+    },
+    "nameTextStyle": {
+      "color": "#52514e"
+    }
+  },
+  "valueAxis": {
+    "axisLine": {
+      "show": false
+    },
+    "axisTick": {
+      "show": false
+    },
+    "axisLabel": {
+      "color": "#898781",
+      "fontSize": 12
+    },
+    "splitLine": {
+      "show": true,
+      "lineStyle": {
+        "color": "#e1e0d9",
+        "width": 1
+      }
+    },
+    "nameTextStyle": {
+      "color": "#52514e"
+    }
+  },
+  "timeAxis": {
+    "axisLine": {
+      "show": true,
+      "lineStyle": {
+        "color": "#c3c2b7"
+      }
+    },
+    "axisTick": {
+      "show": false
+    },
+    "axisLabel": {
+      "color": "#898781",
+      "fontSize": 12
+    },
+    "splitLine": {
+      "show": false
+    },
+    "nameTextStyle": {
+      "color": "#52514e"
+    }
+  },
+  "line": {
+    "lineStyle": {
+      "width": 2
+    },
+    "symbolSize": 8,
+    "symbol": "circle",
+    "smooth": false
+  },
+  "bar": {
+    "itemStyle": {
+      "borderRadius": [
+        4,
+        4,
+        0,
+        0
+      ]
+    }
+  },
+  "pie": {
+    "itemStyle": {
+      "borderColor": "#fcfcfb",
+      "borderWidth": 2
+    }
+  },
+  "funnel": {
+    "itemStyle": {
+      "borderColor": "#fcfcfb",
+      "borderWidth": 2
+    }
+  },
+  "visualMap": {
+    "inRange": {
+      "color": [
+        "#cde2fb",
+        "#b7d3f6",
+        "#9ec5f4",
+        "#86b6ef",
+        "#6da7ec",
+        "#5598e7",
+        "#3987e5",
+        "#2a78d6",
+        "#256abf",
+        "#1c5cab",
+        "#184f95",
+        "#104281",
+        "#0d366b"
+      ]
+    },
+    "textStyle": {
+      "color": "#52514e"
+    }
+  }
+}

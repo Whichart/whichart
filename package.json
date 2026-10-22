@@ -10,6 +10,12 @@
   "scripts": {
     "dev": "pnpm --filter site dev",
     "build": "pnpm --filter site build",
-    "preview": "pnpm --filter site preview"
+    "preview": "pnpm --filter site preview",
+    "validate": "pnpm --filter @whichart/tokens check && node scripts/validate-charts.mjs",
+    "test": "pnpm -r --if-present test"
+  },
+  "devDependencies": {
+    "ajv": "8.18.0",
+    "yaml": "2.9.0"
   }
 }

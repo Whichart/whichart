@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://whichart.github.io/schema/chart.schema.json",
+  "title": "Whichart chart entry (chart.yaml)",
+  "description": "Source of truth for one chart. The recommender, site pages, agent files and CI checks are all generated from or tested against this file.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "status", "summary", "goals", "data", "fit", "context", "guidance", "states", "color", "accessibility", "code"],
+  "properties": {
+    "id": {
+      "description": "Kebab-case id. Must match the folder name.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "name": { "type": "string", "minLength": 2, "maxLength": 60 },
+    "aliases": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "status": {
+      "description": "draft entries are hidden from the site and recommender.",
+      "enum": ["draft", "ready"]
+    },
+    "summary": { "description": "One sentence: what this chart is for.", "type": "string", "maxLength": 200 },
+    "goals": {
+      "description": "What the reader is trying to do. First item is the primary goal.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/goal" }
+    },
+    "data": {
+      "description": "The data shape this chart needs. The engine matches these against the profiled data.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fields"],
+      "properties": {
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "count"],
+            "properties": {
+              "role": { "$ref": "#/$defs/role" },
+              "count": { "$ref": "#/$defs/range" },
+              "cardinality": {
+                "description": "For category/ordinal roles: distinct values allowed, and the comfortable maximum.",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": { "min": { "type": "integer", "minimum": 1 }, "max": { "type": "integer", "minimum": 1 }, "ideal": { "type": "integer", "minimum": 1 } }
+              },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "rows": { "$ref": "#/$defs/range" },
+        "notes": { "type": "string" }
+      }
+    },
+    "fit": {
+      "description": "Recommender rules, evaluated against the data profile in order. Every rule must explain itself.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rules"],
+      "properties": {
+        "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" } }
+      }
+    },
+    "context": {
+      "description": "How well the chart works in each space, audience and medium (from the recommender's optional context input).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["space", "audience", "medium"],
+      "properties": {
+        "space": { "type": "object", "$ref": "#/$defs/suitability", "propertyNames": { "enum": ["tile", "card", "half", "full"] } },
+        "audience": { "type": "object", "$ref": "#/$defs/suitability", "propertyNames": { "enum": ["glance", "explore"] } },
+        "medium": { "type": "object", "$ref": "#/$defs/suitability", "propertyNames": { "enum": ["dashboard", "report", "slide"] } }
+      }
+    },
+    "guidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["useWhen", "avoidWhen", "alternatives"],
+      "properties": {
+        "useWhen": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "avoidWhen": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "when"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+              "when": { "type": "string" }
+            }
+          }
+        },
+        "pitfalls": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "states": {
+      "description": "Required: how the chart behaves in each of the 10 edge-case states.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["empty", "singlePoint", "allZeros", "outlier", "negative", "manySeries", "longLabels", "largeNumbers", "timeGaps", "noPrevious"],
+      "properties": {
+        "empty": { "$ref": "#/$defs/state" },
+        "singlePoint": { "$ref": "#/$defs/state" },
+        "allZeros": { "$ref": "#/$defs/state" },
+        "outlier": { "$ref": "#/$defs/state" },
+        "negative": { "$ref": "#/$defs/state" },
+        "manySeries": { "$ref": "#/$defs/state" },
+        "longLabels": { "$ref": "#/$defs/state" },
+        "largeNumbers": { "$ref": "#/$defs/state" },
+        "timeGaps": { "$ref": "#/$defs/state" },
+        "noPrevious": { "$ref": "#/$defs/state" }
+      }
+    },
+    "color": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["job"],
+      "properties": {
+        "job": {
+          "description": "categorical = series identity; single = one series in slot 1; emphasis = one highlighted, rest grey; sequential/ordinal/diverging = ramps; status = good/bad meaning; none = no data colour.",
+          "enum": ["categorical", "single", "emphasis", "sequential", "ordinal", "diverging", "status", "none"]
+        },
+        "pairs": {
+          "description": "adjacent: only neighbours touch (bars, stacks, lines). all: any two marks can sit together (scatter, maps, small multiples), capped at 3 series.",
+          "enum": ["adjacent", "all"]
+        },
+        "maxSeries": { "type": "integer", "minimum": 1, "maximum": 8 }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tableFallback", "labels"],
+      "properties": {
+        "tableFallback": { "description": "A table view of the same data is offered.", "type": "boolean" },
+        "labels": {
+          "description": "Direct labelling strategy. Light-mode slots 3, 4 and 5 are below 3:1, so charts using them need labels or a table.",
+          "enum": ["none", "selective", "all", "legend-only"]
+        },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "code": {
+      "description": "Which code targets exist in code/. echarts is the reference and is required.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["echarts"],
+      "properties": {
+        "echarts": { "const": "code/echarts.ts" },
+        "recharts": { "const": "code/recharts.tsx" },
+        "plotly": { "const": "code/plotly.py" },
+        "html": { "description": "For non-chart components (KPI tiles, tables).", "const": "code/html.html" }
+      }
+    },
+    "related": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" } }
+  },
+  "$defs": {
+    "goal": { "enum": ["trend", "compare", "part-of-whole", "ranking", "flow", "distribution", "relationship", "kpi"] },
+    "role": {
+      "description": "time = dates/timestamps; measure = numeric value; category = unordered labels; ordinal = ordered labels (stages, tiers); geo = region codes; id = unique identifier.",
+      "enum": ["time", "measure", "category", "ordinal", "geo", "id"]
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "min": { "type": "integer", "minimum": 0 }, "max": { "type": "integer", "minimum": 0 } }
+    },
+    "suitability": {
+      "type": "object",
+      "additionalProperties": { "enum": ["good", "ok", "poor", "never"] }
+    },
+    "metric": {
+      "description": "Properties of the profiled data that rules can test.",
+      "enum": [
+        "rows",
+        "timeFields",
+        "measureFields",
+        "categoryFields",
+        "ordinalFields",
+        "geoFields",
+        "categories",
+        "series",
+        "pointsPerSeries",
+        "hasNegatives",
+        "allZeros",
+        "hasTimeGaps",
+        "hasPrevious",
+        "maxLabelLength",
+        "outlierRatio",
+        "sumsToWhole",
+        "goal",
+        "space",
+        "audience",
+        "medium"
+      ]
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["metric", "op", "value"],
+          "properties": {
+            "metric": { "$ref": "#/$defs/metric" },
+            "op": { "enum": ["=", "!=", "<", "<=", ">", ">=", "in"] },
+            "value": { "type": ["number", "boolean", "string", "array"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["all"],
+          "properties": { "all": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/condition" } } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["any"],
+          "properties": { "any": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/condition" } } }
+        }
+      ]
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["when", "effect", "reason"],
+      "properties": {
+        "when": { "$ref": "#/$defs/condition" },
+        "effect": {
+          "description": "exclude = move to the avoid list; penalty/boost = adjust the score by weight.",
+          "enum": ["exclude", "penalty", "boost"]
+        },
+        "weight": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "reason": { "description": "Shown to the user. Plain language.", "type": "string", "minLength": 10 },
+        "fix": { "description": "What to do instead, e.g. 'Fold the smallest categories into Other'.", "type": "string" },
+        "suggest": { "description": "Chart id to suggest instead.", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+      },
+      "if": { "properties": { "effect": { "enum": ["penalty", "boost"] } } },
+      "then": { "required": ["weight"] }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["treatment", "description"],
+      "properties": {
+        "treatment": {
+          "description": "render = draw normally; adapt = draw with an adjustment (e.g. break the axis, truncate labels); message = replace with a message; fallback = switch to another chart; not-applicable = state can't occur for this chart.",
+          "enum": ["render", "adapt", "message", "fallback", "not-applicable"]
+        },
+        "description": { "type": "string", "minLength": 10 },
+        "message": { "description": "Exact text shown, for treatment 'message'.", "type": "string" },
+        "fallback": { "description": "Chart id, for treatment 'fallback'.", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+      },
+      "allOf": [
+        { "if": { "properties": { "treatment": { "const": "message" } } }, "then": { "required": ["message"] } },
+        { "if": { "properties": { "treatment": { "const": "fallback" } } }, "then": { "required": ["fallback"] } }
+      ]
+    }
+  }
+}
