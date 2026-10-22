@@ -294,7 +294,7 @@ Every page: clean URL, its own preview image for link sharing, structured data, 
 ## 15. Housekeeping (owner)
 
 - [x] GitHub org **Whichart**
-- [ ] Repo `whichart.github.io` in the org
+- [x] Repo `whichart.github.io` in the org
 - [ ] Claude GitHub App installed on the org with access to the repo
 - [ ] Reserve npm org `@whichart`
 - [ ] Reserve PyPI `whichart`

@@ -30,7 +30,7 @@ ${section('category')}
 ## Optional
 - [Edge cases](${abs('edge-cases/')})
 - [Theme and palette checks](${abs('theme/')})
-- [Source on GitHub](https://github.com/Whichart/whichart)
+- [Source on GitHub](https://github.com/Whichart/whichart.github.io)
 `;
   return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 };
