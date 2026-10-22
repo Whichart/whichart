@@ -1,8 +1,8 @@
 # Whichart
 
-**The reference agents and researchers check before making a chart.**
+**Modern data visualization examples, tested on real data.**
 
-Pick the right chart, design it well, handle the edge cases, ship working code.
+Find the right chart for your dashboard, see how it handles empty, messy and edge-case data, and copy code that works: ECharts, Recharts and Plotly. For people and AI agents.
 
 - **Choose:** drop your data in and every chart is ranked against it, with reasons why and why not.
 - **Edge cases:** see how each chart behaves with empty data, zeros, outliers, long labels, gaps in time, no previous period and more.
