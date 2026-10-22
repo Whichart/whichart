@@ -1,0 +1,131 @@
+# Example entry used to review the schema. Moves to charts/line/ in milestone M2.
+id: line
+name: Line chart
+aliases: [line graph, trend line, time series]
+status: draft
+summary: Shows how one or a few measures change over continuous time.
+
+goals: [trend, compare]
+
+data:
+  fields:
+    - role: time
+      count: { min: 1, max: 1 }
+    - role: measure
+      count: { min: 1, max: 5 }
+      description: Each measure becomes one line, or use one measure split by a category.
+    - role: category
+      count: { min: 0, max: 1 }
+      cardinality: { max: 8, ideal: 4 }
+      description: Optional series split, e.g. revenue by channel.
+  rows: { min: 2 }
+
+fit:
+  rules:
+    - when: { metric: timeFields, op: "=", value: 0 }
+      effect: exclude
+      reason: A line implies continuity over time. Without a time field, the connecting lines mean nothing.
+      suggest: bar-horizontal
+    - when: { metric: pointsPerSeries, op: "<", value: 3 }
+      effect: penalty
+      weight: 0.6
+      reason: With fewer than 3 points per series there's no trend to see.
+      fix: Show the numbers as a KPI tile with change instead.
+      suggest: kpi-tile-delta
+    - when: { metric: series, op: ">", value: 5 }
+      effect: penalty
+      weight: 0.5
+      reason: More than 5 lines become a tangle that's hard to follow.
+      fix: Highlight one series and grey the rest, or split into small multiples.
+    - when: { metric: series, op: ">", value: 8 }
+      effect: exclude
+      reason: More series than there are distinguishable colours.
+      fix: Fold the smallest series into "Other" or use a table.
+      suggest: data-table
+    - when: { all: [{ metric: goal, op: "=", value: trend }, { metric: timeFields, op: "=", value: 1 }] }
+      effect: boost
+      weight: 0.4
+      reason: Time on the x-axis and a trend question is exactly what a line chart is for.
+    - when: { metric: space, op: "=", value: tile }
+      effect: penalty
+      weight: 0.5
+      reason: Axes and labels don't fit in a KPI tile.
+      suggest: sparkline
+
+context:
+  space: { tile: poor, card: good, half: good, full: good }
+  audience: { glance: good, explore: good }
+  medium: { dashboard: good, report: good, slide: good }
+
+guidance:
+  useWhen:
+    - The question is "how did this change over time?"
+    - You have regular time intervals (daily, weekly, monthly).
+    - You compare up to 5 series on the same scale.
+  avoidWhen:
+    - The x-axis is categories with no order. Use a bar chart.
+    - The measures have very different scales. Never add a second y-axis; use separate charts or index both to 100.
+    - The reader needs exact values. Use a table, or label key points.
+  alternatives:
+    - id: area
+      when: A single series where the volume under the line matters.
+    - id: sparkline
+      when: Space is a KPI tile and only the shape matters.
+    - id: period-comparison
+      when: The point is "this period vs last period".
+  pitfalls:
+    - Starting the y-axis away from zero exaggerates small changes. Lines may start above zero but say so.
+    - Connecting across missing days hides gaps. Break the line instead.
+
+states:
+  empty:
+    treatment: message
+    description: Keep the frame and axes so the layout doesn't jump; show a short message in the plot area.
+    message: No data for this period
+  singlePoint:
+    treatment: fallback
+    description: One point can't show a trend. Show the value as a KPI tile.
+    fallback: kpi-tile-delta
+  allZeros:
+    treatment: adapt
+    description: Draw the flat line on the baseline and fix the y-axis to 0–1 so it doesn't render a meaningless scale.
+  outlier:
+    treatment: adapt
+    description: Keep the linear scale and label the outlier directly. Never silently clip it.
+  negative:
+    treatment: render
+    description: Extend the axis below zero and emphasise the zero line.
+  manySeries:
+    treatment: adapt
+    description: Beyond 5 series, highlight the top series and grey the rest, with a control to pick which is highlighted.
+  longLabels:
+    treatment: adapt
+    description: Truncate legend labels with an ellipsis at about 24 characters; show the full name in the tooltip.
+  largeNumbers:
+    treatment: adapt
+    description: Compact axis ticks (1.2M, 12 lakh) using the locale; full value in the tooltip.
+  timeGaps:
+    treatment: adapt
+    description: Break the line at missing periods instead of interpolating across them.
+  noPrevious:
+    treatment: not-applicable
+    description: A plain line chart doesn't compare to a previous period.
+
+color:
+  job: categorical
+  pairs: adjacent
+  maxSeries: 8
+
+accessibility:
+  tableFallback: true
+  labels: selective
+  notes:
+    - With 2–4 series, label line ends directly so colour isn't the only cue.
+    - Crosshair tooltip shows every series value at the hovered time.
+
+code:
+  echarts: code/echarts.ts
+  recharts: code/recharts.tsx
+  plotly: code/plotly.py
+
+related: [area, sparkline, period-comparison, multi-line]

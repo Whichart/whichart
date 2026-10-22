@@ -1,0 +1,186 @@
+{
+  "layout": {
+    "colorway": [
+      "#2a78d6",
+      "#eb6834",
+      "#1baf7a",
+      "#eda100",
+      "#e87ba4",
+      "#008300",
+      "#6250d6",
+      "#e34948"
+    ],
+    "paper_bgcolor": "#fcfcfb",
+    "plot_bgcolor": "#fcfcfb",
+    "font": {
+      "family": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+      "color": "#52514e",
+      "size": 14
+    },
+    "title": {
+      "font": {
+        "color": "#0b0b0b",
+        "size": 16
+      }
+    },
+    "legend": {
+      "font": {
+        "color": "#52514e"
+      }
+    },
+    "xaxis": {
+      "gridcolor": "#e1e0d9",
+      "linecolor": "#c3c2b7",
+      "zerolinecolor": "#c3c2b7",
+      "tickfont": {
+        "color": "#898781",
+        "size": 12
+      },
+      "title": {
+        "font": {
+          "color": "#52514e"
+        }
+      },
+      "automargin": true,
+      "showgrid": false
+    },
+    "yaxis": {
+      "gridcolor": "#e1e0d9",
+      "linecolor": "#c3c2b7",
+      "zerolinecolor": "#c3c2b7",
+      "tickfont": {
+        "color": "#898781",
+        "size": 12
+      },
+      "title": {
+        "font": {
+          "color": "#52514e"
+        }
+      },
+      "automargin": true,
+      "showgrid": true
+    },
+    "hoverlabel": {
+      "bgcolor": "#fcfcfb",
+      "bordercolor": "#c3c2b7",
+      "font": {
+        "color": "#0b0b0b"
+      }
+    },
+    "colorscale": {
+      "sequential": [
+        [
+          0,
+          "#cde2fb"
+        ],
+        [
+          0.0833,
+          "#b7d3f6"
+        ],
+        [
+          0.1667,
+          "#9ec5f4"
+        ],
+        [
+          0.25,
+          "#86b6ef"
+        ],
+        [
+          0.3333,
+          "#6da7ec"
+        ],
+        [
+          0.4167,
+          "#5598e7"
+        ],
+        [
+          0.5,
+          "#3987e5"
+        ],
+        [
+          0.5833,
+          "#2a78d6"
+        ],
+        [
+          0.6667,
+          "#256abf"
+        ],
+        [
+          0.75,
+          "#1c5cab"
+        ],
+        [
+          0.8333,
+          "#184f95"
+        ],
+        [
+          0.9167,
+          "#104281"
+        ],
+        [
+          1,
+          "#0d366b"
+        ]
+      ],
+      "diverging": [
+        [
+          0,
+          "#621b1a"
+        ],
+        [
+          0.125,
+          "#9e3432"
+        ],
+        [
+          0.25,
+          "#d75853"
+        ],
+        [
+          0.375,
+          "#ea9a93"
+        ],
+        [
+          0.5,
+          "#f0efec"
+        ],
+        [
+          0.625,
+          "#86b6ef"
+        ],
+        [
+          0.75,
+          "#3987e5"
+        ],
+        [
+          0.875,
+          "#1c5cab"
+        ],
+        [
+          1,
+          "#0d366b"
+        ]
+      ]
+    }
+  },
+  "data": {
+    "scatter": [
+      {
+        "line": {
+          "width": 2
+        },
+        "marker": {
+          "size": 8
+        }
+      }
+    ],
+    "bar": [
+      {
+        "marker": {
+          "line": {
+            "width": 0
+          }
+        }
+      }
+    ]
+  }
+}
