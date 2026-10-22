@@ -1,0 +1,71 @@
+{
+  "columns": [
+    "value",
+    "previous"
+  ],
+  "sample": {
+    "file": "sample.csv",
+    "options": {
+      "label": "Revenue",
+      "locale": "en-US",
+      "currency": "USD"
+    }
+  },
+  "states": {
+    "empty": {
+      "file": "states/empty.csv",
+      "options": {
+        "label": "Revenue",
+        "locale": "en-US",
+        "currency": "USD"
+      }
+    },
+    "allZeros": {
+      "file": "states/allZeros.csv",
+      "options": {
+        "label": "Orders",
+        "locale": "en-US"
+      }
+    },
+    "outlier": {
+      "file": "states/outlier.csv",
+      "options": {
+        "label": "Flash-sale revenue",
+        "locale": "en-US",
+        "currency": "USD"
+      }
+    },
+    "negative": {
+      "file": "states/negative.csv",
+      "options": {
+        "label": "Net profit",
+        "locale": "en-US",
+        "currency": "USD"
+      }
+    },
+    "longLabels": {
+      "file": "states/longLabels.csv",
+      "options": {
+        "label": "Average order value excluding refunds, shipping and taxes",
+        "locale": "en-US",
+        "currency": "USD"
+      }
+    },
+    "largeNumbers": {
+      "file": "states/largeNumbers.csv",
+      "options": {
+        "label": "Revenue",
+        "locale": "en-IN",
+        "currency": "BDT"
+      }
+    },
+    "noPrevious": {
+      "file": "states/noPrevious.csv",
+      "options": {
+        "label": "Revenue",
+        "locale": "en-US",
+        "currency": "USD"
+      }
+    }
+  }
+}

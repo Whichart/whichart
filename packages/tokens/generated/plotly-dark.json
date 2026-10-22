@@ -67,6 +67,11 @@
         "color": "#f0efec"
       }
     },
+    "annotationdefaults": {
+      "font": {
+        "color": "#f0efec"
+      }
+    },
     "colorscale": {
       "sequential": [
         [

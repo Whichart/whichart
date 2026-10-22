@@ -19,8 +19,40 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Validate palette and chart entries
+      - name: Validate palette, chart entries and data
         run: pnpm validate
+      - name: Type-check code examples
+        run: pnpm typecheck
       - name: Test
         run: pnpm test
       - run: pnpm build
+
+  render:
+    # Renders every code example on every edge case, light and dark, in Chromium.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - run: pnpm install --frozen-lockfile
+      - run: pip install -r requirements.txt
+      - name: Install Chromium and fonts (incl. Bengali for ৳)
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          sudo apt-get install -y --no-install-recommends fonts-noto-core
+      - name: Render all charts
+        run: pnpm sheets
+      - name: Upload contact sheets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contact-sheets
+          path: .render/sheets/
+          if-no-files-found: ignore

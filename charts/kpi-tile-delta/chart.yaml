@@ -1,0 +1,116 @@
+id: kpi-tile-delta
+name: KPI tile with change
+aliases: [stat tile, metric card, scorecard, big number]
+status: ready
+summary: One headline number and how it changed since the previous period.
+
+goals: [kpi]
+
+data:
+  fields:
+    - role: measure
+      count: { min: 1, max: 1 }
+      description: The current value, and optionally the previous period's value for the change.
+  rows: { min: 0, max: 1 }
+  notes: Aggregate first (sum, average, count for the period). The tile shows one number, not a series.
+
+fit:
+  rules:
+    - when: { metric: goal, op: "=", value: kpi }
+      effect: boost
+      weight: 0.5
+      reason: A single headline number is exactly what a KPI tile is for.
+    - when: { metric: space, op: "=", value: tile }
+      effect: boost
+      weight: 0.3
+      reason: Built for small dashboard tiles.
+    - when: { all: [{ metric: goal, op: "=", value: trend }, { metric: pointsPerSeries, op: ">=", value: 7 }] }
+      effect: penalty
+      weight: 0.4
+      reason: You have enough history to show a trend; a single number hides its shape.
+      fix: Add a sparkline, or use a line chart.
+      suggest: kpi-tile-sparkline
+    - when: { metric: series, op: ">", value: 1 }
+      effect: penalty
+      weight: 0.3
+      reason: One tile shows one number. Several series need one tile each, or a chart.
+    - when: { metric: audience, op: "=", value: explore }
+      effect: penalty
+      weight: 0.2
+      reason: Analysts exploring data need the detail behind the number.
+
+context:
+  space: { tile: good, card: good, half: ok, full: poor }
+  audience: { glance: good, explore: ok }
+  medium: { dashboard: good, report: ok, slide: good }
+
+guidance:
+  useWhen:
+    - "The reader needs one number at a glance: revenue, orders, conversion, active users."
+    - A row of 3–5 tiles leads a dashboard.
+  avoidWhen:
+    - The shape over time matters. Add a sparkline or use a line chart.
+    - Comparing many categories. Use a bar chart or table.
+  alternatives:
+    - id: kpi-tile-sparkline
+      when: The recent trend matters as much as the number.
+    - id: progress-meter
+      when: The number is measured against a target.
+    - id: line
+      when: The reader needs to see the whole history.
+  pitfalls:
+    - A percentage change from zero or across a sign change (profit to loss) is meaningless. Show the absolute change instead.
+    - 'A change of "+1,016%" is hard to read. Above 6× show a multiple: "11.2×".'
+    - Colour alone shouldn't carry the direction. Use an arrow and a sign too.
+    - For metrics where lower is better (refund rate, churn), flip which direction counts as good.
+
+states:
+  empty:
+    treatment: message
+    description: Show a dash instead of zero (zero is a real value), with a short message.
+    message: No data yet
+  singlePoint:
+    treatment: not-applicable
+    description: A KPI tile always shows a single value.
+  allZeros:
+    treatment: adapt
+    description: Shows 0 and "No change" in neutral grey instead of a 0% change.
+  outlier:
+    treatment: adapt
+    description: Changes of 6× or more show as a multiple ("▲ 11.2×") instead of a huge percentage.
+  negative:
+    treatment: adapt
+    description: Negative values keep their sign. When the sign flips (profit to loss) the change is shown as an absolute amount, not a percentage.
+  manySeries:
+    treatment: not-applicable
+    description: One tile shows one number.
+  longLabels:
+    treatment: adapt
+    description: The label wraps to at most two lines, then truncates with an ellipsis; the full label is in the tooltip.
+  largeNumbers:
+    treatment: adapt
+    description: Values of 100,000 or more use the locale's compact form ($1.2M, ৳12.3Cr); the full value is in the tooltip.
+  timeGaps:
+    treatment: not-applicable
+    description: A KPI tile has no time axis.
+  noPrevious:
+    treatment: adapt
+    description: Shows a neutral "New" badge instead of a change, e.g. for a new store or a metric that just started.
+
+color:
+  job: status
+  maxSeries: 1
+
+accessibility:
+  tableFallback: false
+  labels: all
+  notes:
+    - The change always has an arrow (▲ ▼) and a sign, so colour isn't the only cue.
+    - Screen readers get the full sentence, e.g. "Revenue $48,210, up 12.4% vs previous period".
+
+code:
+  vanilla: code/vanilla.ts
+  react: code/react.tsx
+  plotly: code/plotly_figure.py
+
+related: [kpi-tile-sparkline, progress-meter, sparkline]
