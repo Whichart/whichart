@@ -1,0 +1,260 @@
+{
+  "version": 1,
+  "charts": [
+    {
+      "id": "kpi-tile-delta",
+      "name": "KPI tile with change",
+      "summary": "One headline number and how it changed since the previous period.",
+      "goals": [
+        "kpi"
+      ],
+      "data": {
+        "fields": [
+          {
+            "role": "measure",
+            "count": {
+              "min": 1,
+              "max": 1
+            }
+          }
+        ],
+        "rows": {
+          "min": 0,
+          "max": 1
+        }
+      },
+      "rules": [
+        {
+          "when": {
+            "metric": "goal",
+            "op": "=",
+            "value": "kpi"
+          },
+          "effect": "boost",
+          "weight": 0.5,
+          "reason": "A single headline number is exactly what a KPI tile is for."
+        },
+        {
+          "when": {
+            "metric": "space",
+            "op": "=",
+            "value": "tile"
+          },
+          "effect": "boost",
+          "weight": 0.3,
+          "reason": "Built for small dashboard tiles."
+        },
+        {
+          "when": {
+            "all": [
+              {
+                "metric": "goal",
+                "op": "=",
+                "value": "trend"
+              },
+              {
+                "metric": "pointsPerSeries",
+                "op": ">=",
+                "value": 7
+              }
+            ]
+          },
+          "effect": "penalty",
+          "weight": 0.4,
+          "reason": "You have enough history to show a trend; a single number hides its shape.",
+          "fix": "Add a sparkline, or use a line chart.",
+          "suggest": "kpi-tile-sparkline"
+        },
+        {
+          "when": {
+            "metric": "series",
+            "op": ">",
+            "value": 1
+          },
+          "effect": "penalty",
+          "weight": 0.3,
+          "reason": "One tile shows one number. Several series need one tile each, or a chart."
+        },
+        {
+          "when": {
+            "metric": "audience",
+            "op": "=",
+            "value": "explore"
+          },
+          "effect": "penalty",
+          "weight": 0.2,
+          "reason": "Analysts exploring data need the detail behind the number."
+        }
+      ],
+      "context": {
+        "space": {
+          "tile": "good",
+          "card": "good",
+          "half": "ok",
+          "full": "poor"
+        },
+        "audience": {
+          "glance": "good",
+          "explore": "ok"
+        },
+        "medium": {
+          "dashboard": "good",
+          "report": "ok",
+          "slide": "good"
+        }
+      },
+      "alternatives": [
+        {
+          "id": "kpi-tile-sparkline",
+          "when": "The recent trend matters as much as the number."
+        },
+        {
+          "id": "progress-meter",
+          "when": "The number is measured against a target."
+        },
+        {
+          "id": "line",
+          "when": "The reader needs to see the whole history."
+        }
+      ],
+      "code": [
+        "vanilla",
+        "react",
+        "plotly"
+      ]
+    },
+    {
+      "id": "line",
+      "name": "Line chart",
+      "summary": "Shows how one measure changes over continuous time.",
+      "goals": [
+        "trend"
+      ],
+      "data": {
+        "fields": [
+          {
+            "role": "time",
+            "count": {
+              "min": 1,
+              "max": 1
+            }
+          },
+          {
+            "role": "measure",
+            "count": {
+              "min": 1,
+              "max": 1
+            }
+          }
+        ],
+        "rows": {
+          "min": 1
+        }
+      },
+      "rules": [
+        {
+          "when": {
+            "metric": "timeFields",
+            "op": "=",
+            "value": 0
+          },
+          "effect": "exclude",
+          "reason": "A line implies continuity over time. Without a time field the connecting lines mean nothing.",
+          "suggest": "bar-horizontal"
+        },
+        {
+          "when": {
+            "metric": "series",
+            "op": ">",
+            "value": 1
+          },
+          "effect": "exclude",
+          "reason": "This is the single-series line. Several series need colours, a legend and different rules.",
+          "suggest": "multi-line"
+        },
+        {
+          "when": {
+            "metric": "pointsPerSeries",
+            "op": "<",
+            "value": 3
+          },
+          "effect": "penalty",
+          "weight": 0.6,
+          "reason": "With fewer than 3 points there's no trend to see.",
+          "fix": "Show the latest value and its change as a KPI tile.",
+          "suggest": "kpi-tile-delta"
+        },
+        {
+          "when": {
+            "all": [
+              {
+                "metric": "goal",
+                "op": "=",
+                "value": "trend"
+              },
+              {
+                "metric": "timeFields",
+                "op": "=",
+                "value": 1
+              }
+            ]
+          },
+          "effect": "boost",
+          "weight": 0.4,
+          "reason": "Time on the x-axis and a trend question is exactly what a line chart is for."
+        },
+        {
+          "when": {
+            "metric": "space",
+            "op": "=",
+            "value": "tile"
+          },
+          "effect": "penalty",
+          "weight": 0.5,
+          "reason": "Axes and labels don't fit in a KPI tile.",
+          "suggest": "sparkline"
+        }
+      ],
+      "context": {
+        "space": {
+          "tile": "poor",
+          "card": "good",
+          "half": "good",
+          "full": "good"
+        },
+        "audience": {
+          "glance": "good",
+          "explore": "good"
+        },
+        "medium": {
+          "dashboard": "good",
+          "report": "good",
+          "slide": "good"
+        }
+      },
+      "alternatives": [
+        {
+          "id": "area",
+          "when": "The volume under the line matters, e.g. cumulative sign-ups."
+        },
+        {
+          "id": "sparkline",
+          "when": "Space is a KPI tile and only the shape matters."
+        },
+        {
+          "id": "period-comparison",
+          "when": "The point is \"this period vs last period\"."
+        },
+        {
+          "id": "multi-line",
+          "when": "You need 2–5 series on the same scale."
+        }
+      ],
+      "code": [
+        "echarts",
+        "recharts",
+        "plotly"
+      ]
+    }
+  ]
+}
