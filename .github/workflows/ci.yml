@@ -19,4 +19,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Validate palette and chart entries
+        run: pnpm validate
+      - name: Test
+        run: pnpm test
       - run: pnpm build

@@ -1,0 +1,173 @@
+---
+import tokens from '@whichart/tokens/tokens.json';
+import { validateTokens } from '@whichart/tokens/validate';
+import { diverging, sequential, deltaColors } from '@whichart/tokens/build';
+import '@whichart/tokens/whichart.css';
+
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const { results, reliefSlots } = validateTokens(tokens);
+const modes = ['light', 'dark'];
+const hues = ['blue', 'orange', 'aqua', 'yellow', 'magenta', 'green', 'violet', 'red'];
+const lines = [
+  '8,60 40,48 72,52 104,30 136,36 168,18 200,22',
+  '8,70 40,64 72,66 104,58 136,50 168,48 200,40',
+  '8,44 40,46 72,38 104,42 136,32 168,36 200,30',
+];
+const bars = [['Web', 82], ['App', 64], ['Marketplace', 41], ['Retail', 23]];
+const statusIcon = { good: '✓', warning: '!', serious: '▲', critical: '✕' };
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Theme preview</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  </head>
+  <body>
+    <main>
+      <p class="back"><a href={`${base}preview/home/`}>← Homepage wireframe</a></p>
+      <h1>Default theme</h1>
+      <p class="lede">
+        Generated from <code>packages/tokens/tokens.json</code>. Every number below is computed in CI; a palette that fails a check can't be merged.
+      </p>
+
+      <div class="modes">
+        {
+          modes.map((mode) => {
+            const m = tokens.modes[mode];
+            const delta = deltaColors(tokens, mode);
+            return (
+              <section class="panel" style={`background:${m.surface};color:${m.ink.primary};border-color:${m.grid}`}>
+                <h2>{mode === 'light' ? 'Light' : 'Dark'}</h2>
+
+                <h3 style={`color:${m.ink.secondary}`}>Categorical (fixed order)</h3>
+                <ol class="swatches">
+                  {m.categorical.map((c, i) => (
+                    <li>
+                      <span class="sw" style={`background:${c}`} />
+                      <span>
+                        {i + 1}. {hues[i]}
+                        {reliefSlots[mode].includes(i + 1) && <sup title="Below 3:1 on this surface: needs direct labels or a table view">*</sup>}
+                        <br />
+                        <code style={`color:${m.ink.secondary}`}>{c}</code>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+                {reliefSlots[mode].length > 0 && (
+                  <p class="note" style={`color:${m.ink.secondary}`}>* Below 3:1 contrast: charts using these slots must show direct labels or a table view.</p>
+                )}
+
+                <h3 style={`color:${m.ink.secondary}`}>Sample: multi-line</h3>
+                <svg viewBox="0 0 210 80" class="chart" role="img" aria-label={`Three-series line chart in ${mode} mode`}>
+                  {[20, 40, 60].map((y) => <line x1="8" x2="200" y1={y} y2={y} stroke={m.grid} />)}
+                  <line x1="8" x2="200" y1="78" y2="78" stroke={m.axis} />
+                  {lines.map((p, i) => <polyline points={p} fill="none" stroke={m.categorical[i]} stroke-width="2" />)}
+                </svg>
+
+                <h3 style={`color:${m.ink.secondary}`}>Sample: bar (one series, slot 1)</h3>
+                <div class="bars">
+                  {bars.map(([label, v]) => (
+                    <div class="bar-row">
+                      <span style={`color:${m.ink.secondary}`}>{label}</span>
+                      <span class="bar" style={`width:${v}%;background:${m.categorical[0]}`} />
+                      <span class="val">{v}k</span>
+                    </div>
+                  ))}
+                </div>
+
+                <h3 style={`color:${m.ink.secondary}`}>Sequential (low → high)</h3>
+                <div class="ramp">{sequential(tokens, mode).map((c) => <span style={`background:${c}`} />)}</div>
+
+                <h3 style={`color:${m.ink.secondary}`}>Diverging (negative · neutral · positive)</h3>
+                <div class="ramp">{diverging(tokens, mode).map((c) => <span style={`background:${c}`} />)}</div>
+
+                <h3 style={`color:${m.ink.secondary}`}>Status (always icon + label)</h3>
+                <div class="status">
+                  {Object.entries(tokens.status).map(([k, c]) => (
+                    <span style={`border-color:${m.grid}`}>
+                      <b style={`background:${c};color:#0b0b0b`}>{statusIcon[k]}</b> {k}
+                    </span>
+                  ))}
+                </div>
+
+                <h3 style={`color:${m.ink.secondary}`}>Change vs previous ({tokens.deltaConvention})</h3>
+                <p class="delta">
+                  <span style={`color:${delta.up}`}>▲ 12.4%</span>
+                  <span style={`color:${delta.down}`}>▼ 3.1%</span>
+                  <span style={`color:${delta.neutral}`}>— 0.0%</span>
+                </p>
+              </section>
+            );
+          })
+        }
+      </div>
+
+      <h2>Checks</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Result</th><th>Mode</th><th>Check</th><th>Detail</th></tr>
+          </thead>
+          <tbody>
+            {
+              results.map((r) => (
+                <tr>
+                  <td><span class={`res res-${r.level}`}>{r.level.toUpperCase()}</span></td>
+                  <td>{r.mode}</td>
+                  <td>{r.check}</td>
+                  <td><code>{r.detail}</code></td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="lede">
+        ΔE is distance in OKLab ×100. Colour-blindness is simulated with Machado et al. (2009). Scatter plots, maps and small multiples
+        are limited to the first 3 colours, the most that stay distinct when any two can sit side by side.
+      </p>
+    </main>
+
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--wc-page); color: var(--wc-ink-primary); font: 15px/1.5 var(--wc-font); }
+      main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+      a { color: var(--wc-accent); }
+      h1 { margin: 0 0 4px; letter-spacing: -0.02em; }
+      .lede { color: var(--wc-ink-secondary); max-width: 70ch; }
+      .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 24px 0; }
+      .panel { border: 1px solid; border-radius: 14px; padding: 20px; }
+      .panel h2 { margin: 0 0 8px; font-size: 18px; }
+      .panel h3 { font-size: 13px; font-weight: 500; margin: 20px 0 8px; }
+      .swatches { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 13px; }
+      .swatches li { display: flex; gap: 8px; align-items: center; }
+      .sw { width: 28px; height: 28px; border-radius: 6px; flex: none; }
+      .note { font-size: 12px; margin: 8px 0 0; }
+      .chart { width: 100%; height: auto; display: block; }
+      .bars { display: grid; gap: 6px; font-size: 13px; }
+      .bar-row { display: grid; grid-template-columns: 90px 1fr 40px; align-items: center; gap: 8px; }
+      .bar { height: 12px; border-radius: 0 4px 4px 0; }
+      .val { font-variant-numeric: tabular-nums; }
+      .ramp { display: flex; gap: 2px; }
+      .ramp span { flex: 1; height: 24px; }
+      .ramp span:first-child { border-radius: 4px 0 0 4px; }
+      .ramp span:last-child { border-radius: 0 4px 4px 0; }
+      .status { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; }
+      .status span { border: 1px solid; border-radius: 999px; padding: 2px 10px 2px 4px; display: inline-flex; align-items: center; gap: 6px; }
+      .status b { width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; }
+      .delta { display: flex; gap: 16px; font-weight: 600; margin: 0; }
+      .table-wrap { overflow-x: auto; }
+      table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--wc-surface); }
+      th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--wc-grid); vertical-align: top; }
+      td code { white-space: normal; word-break: break-word; }
+      .res { font-weight: 600; font-size: 11px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--wc-border); }
+      .res-pass { color: var(--wc-delta-up); }
+      .res-warn { color: var(--wc-ink-primary); }
+      .res-fail { color: var(--wc-delta-down); }
+    </style>
+  </body>
+</html>
